@@ -1,0 +1,309 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Zevents – Admin Bookings</title>
+<link rel="icon" href="/static/images/zevntt.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+body{
+  min-height:100vh;
+  background:radial-gradient(circle at top left,#3b2c5a,#0f0c1d);
+  color:#fff;
+  overflow-x:hidden;
+}
+
+.page-wrapper{padding:40px;}
+
+.page-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.page-title{
+  font-size:28px;
+  font-weight:600;
+}
+
+.page-title span{color:#a855f7;}
+
+.glass-card{
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(14px);
+  border-radius:18px;
+  padding:25px;
+  overflow-x:auto;
+}
+
+table{width:100%;border-collapse:collapse;min-width:600px;}
+th,td{padding:12px;text-align:left;}
+th{color:#d8c8ff;font-size:13px;font-weight:500;}
+tr{border-bottom:1px solid rgba(255,255,255,.08);}
+tbody tr:hover{background:rgba(255,255,255,.05);}
+
+.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.pending{background:#facc15;color:#000;}
+.approved{background:#22c55e;color:#000;}
+.rejected{background:#ef4444;color:#fff;}
+
+.btn{
+  padding:6px 14px;
+  border-radius:20px;
+  border:none;
+  cursor:pointer;
+  font-size:13px;
+  font-family:'Poppins',sans-serif;
+  transition:.2s;
+}
+
+.approve{background:#22c55e;color:#000;}
+.approve:hover{background:#16a34a;}
+
+.reject{background:#ef4444;color:#fff;}
+.reject:hover{background:#dc2626;}
+
+.back-btn{
+  display:inline-block;
+  background:linear-gradient(135deg,#8b5cf6,#a855f7);
+  padding:10px 22px;
+  border-radius:30px;
+  color:#fff;
+  font-size:14px;
+  font-weight:500;
+  text-decoration:none;
+  transition:.3s;
+  box-shadow:0 8px 25px rgba(168,85,247,.35);
+  white-space:nowrap;
+}
+
+.back-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 35px rgba(168,85,247,.5);
+  color:#fff;
+  text-decoration:none;
+}
+
+.empty-state{
+  text-align:center;
+  padding:60px 20px;
+  color:rgba(255,255,255,.4);
+  font-size:15px;
+}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  padding:20px;
+}
+
+.modal-box{
+  background:#1a1625;
+  width:100%;
+  max-width:380px;
+  border-radius:14px;
+  padding:24px;
+  border:1px solid rgba(255,255,255,.1);
+}
+
+.modal-box h3{
+  margin-bottom:14px;
+  font-size:17px;
+  color:#d8c8ff;
+}
+
+.modal-box label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  margin-top:10px;
+  cursor:pointer;
+  color:rgba(255,255,255,.8);
+}
+
+.modal-box label input[type="checkbox"]{
+  accent-color:#a855f7;
+  width:15px;
+  height:15px;
+}
+
+.modal-box textarea{
+  width:100%;
+  margin-top:14px;
+  background:#2a2438;
+  border:1px solid rgba(255,255,255,.1);
+  color:#fff;
+  padding:10px;
+  border-radius:8px;
+  font-size:13px;
+  font-family:'Poppins',sans-serif;
+  resize:none;
+  height:80px;
+}
+
+.modal-box textarea::placeholder{color:rgba(255,255,255,.3);}
+
+.modal-actions{
+  margin-top:18px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.modal-actions .btn{
+  flex:1;
+  padding:9px;
+  font-size:13px;
+}
+
+.cancel-btn{
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+}
+
+.cancel-btn:hover{background:rgba(255,255,255,.14);}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .page-wrapper{padding:20px 16px;}
+  .page-title{font-size:22px;}
+  .btn{padding:5px 10px;font-size:12px;}
+  th,td{padding:10px 8px;font-size:13px;}
+}
+</style>
+</head>
+
+<body>
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-title">Booking <span>Requests</span></div>
+    <a href="/adminPage/" class="back-btn">← Back</a>
+  </div>
+
+  {% if key2 %}
+  <div class="glass-card">
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Plan</th>
+          <th>Event</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in key2 %}
+        <tr>
+          <td>{{ i.user.username }}</td>
+          <td>{{ i.plan.name }}</td>
+          <td>{{ i.event_name }}</td>
+          <td>₹ {{ i.total_amount }}</td>
+          <td>
+            {% if i.status == "Pending" %}
+              <span class="badge pending">Pending</span>
+            {% elif i.status == "Approved" %}
+              <span class="badge approved">Approved</span>
+            {% else %}
+              <span class="badge rejected">Rejected</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if i.status == "Pending" %}
+              <button class="btn approve" onclick="confirmApprove('{{i.id}}')">Approve</button>
+              <button class="btn reject" onclick="openModal('{{i.id}}')">Reject</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="glass-card">
+    <div class="empty-state">No booking requests found.</div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-overlay" id="rejectModal">
+  <form class="modal-box" method="POST">
+    {% csrf_token %}
+    <h3>Reject Booking</h3>
+    <label><input type="checkbox" name="reason" value="Budget constraints"> Budget constraints</label>
+    <label><input type="checkbox" name="reason" value="Date not available"> Date not available</label>
+    <label><input type="checkbox" name="reason" value="Venue unavailable"> Venue unavailable</label>
+    <textarea name="other_reason" placeholder="Other reason (optional)"></textarea>
+    <div class="modal-actions">
+      <button type="button" class="btn cancel-btn" onclick="closeModal('rejectModal')">Cancel</button>
+      <button type="submit" class="btn reject">Confirm Reject</button>
+    </div>
+  </form>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal-box">
+    <h3>Confirm Approval</h3>
+    <p style="font-size:13px; color:rgba(255,255,255,.7); margin-bottom:20px;">
+      Are you sure you want to approve this booking request? This action will notify the user.
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="btn cancel-btn" onclick="closeModal('approveModal')">Cancel</button>
+      <button type="button" class="btn approve" id="confirmApproveBtn">Confirm Approve</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(id){
+  const modal = document.getElementById("rejectModal");
+  modal.style.display = "flex";
+  modal.querySelector("form").action = "/reject/" + id + "/";
+}
+
+function closeModal(modalId){
+  document.getElementById(modalId).style.display = "none";
+}
+
+function confirmApprove(id){
+  const modal = document.getElementById("approveModal");
+  modal.style.display = "flex";
+  document.getElementById("confirmApproveBtn").onclick = () => {
+    window.location.href = "/approve/" + id + "/";
+  };
+}
+
+// Close modals on overlay click
+document.querySelectorAll(".modal-overlay").forEach(overlay => {
+  overlay.addEventListener("click", function(e){
+    if(e.target === this) closeModal(this.id);
+  });
+});
+</script>
+
+</body>
+</html>

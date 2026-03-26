@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay Remaining – Zevents</title>
+<link rel="icon" href="/static/images/zevntt.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  min-height:100vh;
+  background:radial-gradient(circle at top left,#0f2a1f,#0d0b14);
+  font-family:'Poppins',sans-serif;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px 16px;
+}
+
+.card{
+  width:100%;
+  max-width:480px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:24px;
+  padding:32px 28px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);
+}
+
+/* ── HEADER ── */
+.card-header{
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.brand-dot{
+  width:10px;height:10px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+}
+
+.brand span{
+  font-size:13px;
+  font-weight:600;
+  color:#4ade80;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.card-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:#ecebff;
+}
+
+.card-header p{
+  font-size:12px;
+  color:#7c7a9a;
+  margin-top:4px;
+}
+
+/* ── SUMMARY ── */
+.summary{
+  background:rgba(34,197,94,0.07);
+  border:1px solid rgba(34,197,94,0.18);
+  border-radius:14px;
+  padding:16px 18px;
+  margin-bottom:24px;
+}
+
+.summary-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:13px;
+  padding:5px 0;
+  color:#b9b6d3;
+}
+
+.summary-row:not(:last-child){
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+.summary-row span:last-child{font-weight:600;color:#ecebff;}
+.summary-row.advance span:last-child{color:#facc15;}
+.summary-row.remaining span:last-child{color:#f87171;}
+.summary-row.pay-now span:last-child{
+  color:#4ade80;
+  font-size:16px;
+  font-weight:700;
+}
+
+/* ── PAID BADGE ── */
+.paid-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:rgba(34,197,94,0.12);
+  border:1px solid rgba(34,197,94,0.25);
+  border-radius:20px;
+  padding:3px 10px;
+  font-size:11px;
+  color:#4ade80;
+  font-weight:500;
+}
+
+/* ── TABS ── */
+.method-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.tab{
+  flex:1;
+  padding:9px 6px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:transparent;
+  color:#7c7a9a;
+  font-size:12px;
+  font-family:'Poppins',sans-serif;
+  font-weight:500;
+  cursor:pointer;
+  transition:.2s;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+
+.tab .tab-icon{font-size:16px;}
+
+.tab.active{
+  border-color:#22c55e;
+  background:rgba(34,197,94,0.12);
+  color:#4ade80;
+}
+
+.tab:hover:not(.active){
+  border-color:rgba(34,197,94,0.3);
+  color:#4ade80;
+}
+
+/* ── FORM ── */
+.field{margin-bottom:16px;}
+
+.field label{
+  font-size:11px;
+  font-weight:500;
+  color:#7c7a9a;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  display:block;
+  margin-bottom:6px;
+}
+
+.field input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:#ecebff;
+  font-size:14px;
+  font-family:'Poppins',sans-serif;
+  outline:none;
+  transition:.25s;
+}
+
+.field input:focus{
+  border-color:#22c55e;
+  background:rgba(34,197,94,0.07);
+  box-shadow:0 0 0 3px rgba(34,197,94,0.12);
+}
+
+.field input::placeholder{color:#3f3d5a;}
+.field input:disabled{opacity:.4;cursor:not-allowed;}
+
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ── CARD VISUAL ── */
+.card-visual{
+  background:linear-gradient(135deg,#0f2a1f,#1a3d2b);
+  border:1px solid rgba(34,197,94,0.2);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+
+.card-visual::before{
+  content:"";
+  position:absolute;
+  top:-40px;right:-40px;
+  width:130px;height:130px;
+  border-radius:50%;
+  background:rgba(34,197,94,0.1);
+}
+
+.card-chip{
+  width:32px;height:24px;
+  border-radius:5px;
+  background:linear-gradient(135deg,#d4a017,#f5d87a);
+  margin-bottom:14px;
+}
+
+.card-number-display{
+  font-size:15px;
+  letter-spacing:.2em;
+  color:#ecebff;
+  font-weight:500;
+  margin-bottom:12px;
+}
+
+.card-meta{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  color:#7c7a9a;
+}
+
+.card-meta span{color:#4ade80;font-weight:500;}
+
+/* ── NOTE ── */
+.note{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  background:rgba(34,197,94,0.07);
+  border:1px solid rgba(34,197,94,0.15);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:11.5px;
+  color:#6db88a;
+  margin-bottom:20px;
+  line-height:1.6;
+}
+
+.note-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+
+/* ── PAY BUTTON ── */
+.pay-btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  font-family:'Poppins',sans-serif;
+  cursor:pointer;
+  transition:.3s;
+  box-shadow:0 8px 30px rgba(34,197,94,0.35);
+  letter-spacing:.02em;
+}
+
+.pay-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 40px rgba(34,197,94,0.5);
+}
+
+.pay-btn:active{transform:translateY(0);}
+
+.secure-note{
+  text-align:center;
+  font-size:11px;
+  color:#4a4868;
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+}
+
+/* ── PANELS ── */
+.upi-panel{display:none;}
+.upi-panel.active{display:block;}
+.card-panel{display:block;}
+.card-panel.hidden{display:none;}
+
+/* ── SUCCESS OVERLAY ── */
+.success-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,11,20,0.92);
+  backdrop-filter:blur(12px);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  gap:20px;
+}
+
+.success-overlay.show{display:flex;}
+
+.circle-wrap{
+  width:120px;height:120px;
+  border-radius:50%;
+  background:rgba(34,197,94,0.1);
+  border:2px solid rgba(34,197,94,0.2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.tick-svg{width:65px;height:65px;}
+
+.tick-circle{
+  fill:none;
+  stroke:#22c55e;
+  stroke-width:3;
+  stroke-dasharray:283;
+  stroke-dashoffset:283;
+  transform-origin:center;
+  transform:rotate(-90deg);
+  transition:stroke-dashoffset 0.6s cubic-bezier(.65,0,.35,1);
+}
+
+.tick-check{
+  fill:none;
+  stroke:#22c55e;
+  stroke-width:3.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:60;
+  stroke-dashoffset:60;
+  transition:stroke-dashoffset 0.4s ease 0.55s;
+}
+
+.success-overlay.show .tick-circle{stroke-dashoffset:0;}
+.success-overlay.show .tick-check{stroke-dashoffset:0;}
+
+.success-amount{
+  font-size:30px;
+  font-weight:700;
+  color:#4ade80;
+}
+
+.success-title{
+  font-size:22px;
+  font-weight:700;
+  color:#ecebff;
+}
+
+.success-sub{
+  font-size:13px;
+  color:#7c7a9a;
+  text-align:center;
+  max-width:270px;
+  line-height:1.6;
+}
+
+.fully-paid-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(34,197,94,0.12);
+  border:1px solid rgba(34,197,94,0.3);
+  border-radius:20px;
+  padding:6px 18px;
+  font-size:13px;
+  color:#4ade80;
+  font-weight:600;
+}
+
+.redirect-text{
+  font-size:12px;
+  color:#4a4868;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="circle-wrap">
+    <svg class="tick-svg" viewBox="0 0 100 100">
+      <circle class="tick-circle" cx="50" cy="50" r="45"/>
+      <polyline class="tick-check" points="28,52 44,68 72,36"/>
+    </svg>
+  </div>
+  <div class="success-amount">₹{{ remaining }}</div>
+  <div class="success-title">Payment Complete!</div>
+  <div class="fully-paid-badge">✓ Booking Fully Paid</div>
+  <div class="success-sub">Your event is fully confirmed. We'll redirect you to your events.</div>
+  <div class="redirect-text">Redirecting in <span id="countdown">3</span>s…</div>
+</div>
+
+<!-- PAYMENT CARD -->
+<div class="card">
+
+  <div class="card-header">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span>Zevents Payments</span>
+    </div>
+    <h2>Final Payment</h2>
+    <p>Complete your booking · Secure checkout</p>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="summary-row">
+      <span>Event</span>
+      <span>{{ booking.event_name }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Total Amount</span>
+      <span>₹{{ booking.total_amount }}</span>
+    </div>
+    <div class="summary-row advance">
+      <span>Advance Paid</span>
+      <span>
+        ₹{{ booking.advance_amount }}
+        <span class="paid-badge">✓ Paid</span>
+      </span>
+    </div>
+    <div class="summary-row remaining">
+      <span>Remaining</span>
+      <span>₹{{ remaining }}</span>
+    </div>
+    <div class="summary-row pay-now">
+      <span>Pay Now</span>
+      <span>₹{{ remaining }}</span>
+    </div>
+  </div>
+
+  <!-- METHOD TABS -->
+  <div class="method-tabs">
+    <button class="tab active" onclick="switchTab('card',this)">
+      <span class="tab-icon">💳</span> Card
+    </button>
+    <button class="tab" onclick="switchTab('upi',this)">
+      <span class="tab-icon">📱</span> UPI
+    </button>
+    <button class="tab" onclick="switchTab('netbanking',this)">
+      <span class="tab-icon">🏦</span> Net Banking
+    </button>
+  </div>
+
+  <form method="POST" id="payForm" onsubmit="handlePay(event)">
+    {% csrf_token %}
+    <input type="hidden" name="phone" id="hiddenPhone">
+
+    <!-- CARD PANEL -->
+    <div class="card-panel" id="cardPanel">
+      <div class="card-visual">
+        <div class="card-chip"></div>
+        <div class="card-number-display" id="cardDisplay">•••• •••• •••• ••••</div>
+        <div class="card-meta">
+          <div>Card Holder<br><span id="nameDisplay">YOUR NAME</span></div>
+          <div>Expires<br><span id="expiryDisplay">MM/YY</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Card Number</label>
+        <input type="text" id="cardNum" placeholder="1234 5678 9012 3456"
+          maxlength="19" oninput="fmtCard(this)" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Cardholder Name</label>
+        <input type="text" id="cardName" placeholder="John Smith"
+          oninput="document.getElementById('nameDisplay').textContent=this.value.toUpperCase()||'YOUR NAME'">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Expiry Date</label>
+          <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" oninput="fmtExpiry(this)">
+        </div>
+        <div class="field">
+          <label>CVV</label>
+          <input type="password" placeholder="•••" maxlength="3">
+        </div>
+      </div>
+    </div>
+
+    <!-- UPI PANEL -->
+    <div class="upi-panel" id="upiPanel">
+      <div class="field">
+        <label>UPI ID</label>
+        <input type="text" placeholder="yourname@upi">
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" id="upiPhone" placeholder="10-digit number"
+          maxlength="10" inputmode="numeric"
+          oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+      </div>
+    </div>
+
+    <!-- NET BANKING PANEL -->
+    <div class="upi-panel" id="netbankingPanel">
+      <div class="field">
+        <label>Select Bank</label>
+        <input type="text" placeholder="e.g. SBI, HDFC, ICICI…">
+      </div>
+      <div class="field">
+        <label>Account Number</label>
+        <input type="text" placeholder="Enter account number">
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="note-icon">✅</span>
+      This is the <b>final payment</b> for your event. After this your booking will be fully confirmed.
+      This is a <b>demo payment</b> — no real money is charged.
+    </div>
+
+    <button type="submit" class="pay-btn">
+      Pay ₹{{ remaining }} & Complete Booking →
+    </button>
+  </form>
+
+  <div class="secure-note">🔒 SSL Secured · Powered by Zevents Pay</div>
+</div>
+
+<script>
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cardPanel').classList.toggle('hidden', name !== 'card');
+  document.getElementById('upiPanel').classList.toggle('active', name === 'upi');
+  document.getElementById('netbankingPanel').classList.toggle('active', name === 'netbanking');
+}
+
+function fmtCard(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,16);
+  el.value = v.match(/.{1,4}/g)?.join(' ') || v;
+  const parts = v.padEnd(16,'•').match(/.{1,4}/g);
+  document.getElementById('cardDisplay').textContent = parts.join(' ');
+}
+
+function fmtExpiry(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,4);
+  if(v.length >= 3) v = v.slice(0,2)+'/'+v.slice(2);
+  el.value = v;
+  document.getElementById('expiryDisplay').textContent = v || 'MM/YY';
+}
+
+function handlePay(e) {
+  e.preventDefault();
+  const upiPhone = document.getElementById('upiPhone').value;
+  document.getElementById('hiddenPhone').value = upiPhone || '0000000000';
+
+  const overlay = document.getElementById('successOverlay');
+  overlay.classList.add('show');
+
+  let count = 3;
+  const countEl = document.getElementById('countdown');
+  const timer = setInterval(() => {
+    count--;
+    countEl.textContent = count;
+    if(count <= 0){
+      clearInterval(timer);
+      document.getElementById('payForm').submit();
+    }
+  }, 1000);
+}
+</script>
+
+</body>
+</html>

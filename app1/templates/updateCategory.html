@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zevents | Update Plan</title>
+    <link rel="icon" href="/static/images/zevntt.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.4);
+            --dark-bg: #07040f;
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, #1a0b2e, #07040f);
+            color: #ecebff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(168, 85, 247, 0.1);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover {
+            color: #fff;
+            transform: translateX(-4px);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 12px 18px;
+            color: #fff;
+            font-size: 15px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--purple);
+            box-shadow: 0 0 0 4px var(--purple-glow);
+        }
+
+        /* FIX DROPDOWN STYLE */
+        select option {
+            background: #12091f;
+            color: #fff;
+            padding: 12px;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        /* ===== FEATURES LIST ===== */
+        #features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .remove-feature {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--error);
+            width: 48px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .remove-feature:hover {
+            background: var(--error);
+            color: #fff;
+        }
+
+        .btn-add-feature {
+            width: 100%;
+            margin-top: 12px;
+            background: transparent;
+            border: 1px dashed var(--glass-border);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-add-feature:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+            background: rgba(168, 85, 247, 0.05);
+        }
+
+        /* ===== BUTTONS ===== */
+        .submit-btn {
+            width: 100%;
+            margin-top: 32px;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, var(--purple), #6d28d9);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(168, 85, 247, 0.4);
+            filter: brightness(1.1);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="title">Update Plan</div>
+        <a href="{% url 'viewCategory' %}" class="back-btn">⟵ Back</a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Plan Name</label>
+            <input type="text" name="name" value="{{ plan.name }}" placeholder="e.g. Platinum" required>
+        </div>
+
+        <div style="display: flex; gap: 20px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Base Price (₹)</label>
+                <input type="number" name="price" value="{{ plan.price }}" step="0.01" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Food / Head (₹)</label>
+                <input type="number" name="food_per_head" value="{{ plan.food_per_head }}" step="0.01">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" placeholder="Brief overview of the plan...">{{ plan.description }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Included Features</label>
+            <div id="features-list">
+                {% for feature in features %}
+                <div class="feature-item">
+                    <input type="text" name="feature" value="{{ feature }}" placeholder="Feature description">
+                    <button class="remove-feature" type="button" onclick="removeFeature(this)">&times;</button>
+                </div>
+                {% empty %}
+                <div class="feature-item">
+                    <input type="text" name="feature" placeholder="Feature description">
+                    <button class="remove-feature" type="button" onclick="removeFeature(this)">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn-add-feature" onclick="addFeature()">
+                + Add Dynamic Feature
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            <select name="is_popular">
+                <option value="True" {% if plan.is_popular %}selected{% endif %}>⭐ Popular Pick</option>
+                <option value="False" {% if not plan.is_popular %}selected{% endif %}>Standard Plan</option>
+            </select>
+        </div>
+
+        <button type="submit" class="submit-btn">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    function addFeature() {
+        const container = document.getElementById('features-list');
+        const div = document.createElement('div');
+        div.className = 'feature-item';
+        div.innerHTML = `
+            <input type="text" name="feature" placeholder="Feature description">
+            <button class="remove-feature" type="button" onclick="removeFeature(this)">&times;</button>
+        `;
+        container.appendChild(div);
+        div.querySelector('input').focus();
+    }
+
+    function removeFeature(btn) {
+        const items = document.querySelectorAll('.feature-item');
+        if (items.length > 1) {
+            btn.closest('.feature-item').remove();
+        } else {
+            btn.closest('.feature-item').querySelector('input').value = '';
+        }
+    }
+</script>
+
+</body>
+</html>

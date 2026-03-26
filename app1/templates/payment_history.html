@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payment History | Zevents</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+      rel="stylesheet">
+
+<style>
+:root {
+  --bg:#1e1a2b;
+  --card:#121212cc;
+  --primary:#9b5cff;
+  --success:#28c76f;
+  --warning:#facc15;
+  --text:#eaeaff;
+  --muted:#b9b6d3;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Poppins',sans-serif;
+}
+
+.container{
+  max-width:1100px;
+  margin:3rem auto;
+  padding:0 1.5rem;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:2.5rem;
+}
+
+.header h1{
+  font-size:2.2rem;
+}
+
+.header button{
+  background:linear-gradient(135deg,#9b5cff,#6a3df0);
+  border:none;
+  padding:.6rem 1.4rem;
+  border-radius:30px;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:1.8rem;
+}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:1.6rem;
+  box-shadow:0 10px 35px rgba(0,0,0,.4);
+  transition:.3s;
+}
+
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 18px 45px rgba(155,92,255,.3);
+}
+
+.label{
+  font-size:.75rem;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:.2rem;
+}
+
+.value{
+  font-size:.95rem;
+  margin-bottom:.9rem;
+  font-weight:500;
+}
+
+.amount{
+  font-size:1.2rem;
+  font-weight:700;
+}
+
+.status{
+  display:inline-block;
+  padding:.3rem .9rem;
+  border-radius:20px;
+  font-size:.75rem;
+  font-weight:600;
+}
+
+.status.advance{
+  background:rgba(250,204,21,.15);
+  color:var(--warning);
+}
+
+.status.balance{
+  background:rgba(40,199,111,.15);
+  color:var(--success);
+}
+
+.date{
+  font-size:.75rem;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>Payment History</h1>
+    <button onclick="location.href='/mainPage/'">Home</button>
+  </div>
+
+  <div class="grid">
+    {% for p in payments %}
+    <div class="card">
+
+      <div class="label">Event</div>
+      <div class="value">{{ p.booking.event_name }}</div>
+
+      <div class="label">Booking ID</div>
+      <div class="value">#{{ p.booking.id }}</div>
+
+      <div class="label">Paid Amount</div>
+      <div class="amount">₹ {{ p.amount_paid }}</div>
+
+      <div class="label">Payment Type</div>
+      <div class="value">
+        {% if p.payment_type == "ADVANCE" %}
+          <span class="status advance">Advance Payment</span>
+        {% else %}
+          <span class="status balance">Payment Completed</span>
+        {% endif %}
+      </div>
+
+      <div class="label">Phone</div>
+      <div class="value">{{ p.phone_number }}</div>
+
+      <div class="label">Payment Date</div>
+      <div class="date">{{ p.payment_date|date:"d M Y, h:i A" }}</div>
+
+    </div>
+    {% empty %}
+    <p>No payments found.</p>
+    {% endfor %}
+  </div>
+
+</div>
+
+</body>
+</html>

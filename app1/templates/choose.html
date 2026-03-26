@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Zevents | Choose Plan</title>
+<link rel="icon" href="/static/images/zevntt.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+
+*{font-family:'Poppins',sans-serif}
+
+body{
+min-height:100vh;
+margin:0;
+background:radial-gradient(circle at top,#2b0a4f,#0b0018 70%);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+overflow-x:hidden;
+}
+/* bubbles */
+.bubbles span{
+position:fixed;
+width:100px;
+height:100px;
+background:rgba(155,92,255,.18);
+border-radius:50%;
+bottom:-120px;
+animation:float 20s linear infinite;
+}
+
+.bubbles span:nth-child(1){left:10%;animation-duration:22s}
+.bubbles span:nth-child(2){left:30%;width:70px;height:70px;animation-duration:16s}
+.bubbles span:nth-child(3){left:50%;animation-duration:25s}
+.bubbles span:nth-child(4){left:70%;width:85px;height:85px;animation-duration:19s}
+.bubbles span:nth-child(5){left:85%;animation-duration:28s}
+
+@keyframes float{
+from{transform:translateY(0);opacity:.3}
+to{transform:translateY(-1100px);opacity:0}
+}
+
+/* card */
+.glass-card{
+width:520px;
+background:rgba(0,0,0,.65);
+backdrop-filter:blur(14px);
+border-radius:20px;
+padding:26px 28px;
+box-shadow:0 30px 60px rgba(0,0,0,.7);
+z-index:2;
+}
+
+h2{
+text-align:center;
+font-size:22px;
+font-weight:600;
+margin-bottom:18px;
+}
+
+/* plan box */
+.plan-box{
+background:linear-gradient(135deg,rgba(155,92,255,.2),rgba(106,0,255,.15));
+border-radius:14px;
+padding:12px;
+margin-bottom:16px;
+}
+
+.plan-name{
+text-align:center;
+font-size:17px;
+font-weight:600;
+color:#d6b8ff;
+margin-bottom:6px;
+}
+
+.plan-row{
+display:flex;
+justify-content:space-between;
+font-size:13px;
+opacity:.9;
+}
+
+/* form */
+label{
+font-size:12px;
+margin-bottom:4px;
+opacity:.85;
+}
+
+/* .form-control{
+height:42px;
+background:rgba(255,255,255,.12);
+border:1px solid rgba(255,255,255,.15);
+color:#fff;
+border-radius:10px;
+padding:8px 12px;
+font-size:14px;
+} */
+
+.form-control::placeholder{
+color:rgba(255,255,255,.6);
+}
+/* 
+.form-control:focus{
+background:rgba(71,50,129,.18);
+border-color:#9b5cff;
+box-shadow:0 0 0 2px rgba(155,92,255,.4);
+color:#fff;
+} */
+/* Fix flatpickr generated input */
+
+.flatpickr-input,
+.flatpickr-alt-input{
+  width:100%;
+  height:42px;
+  background:rgba(255,255,255,.12) !important;
+  border:1px solid rgba(255,255,255,.15) !important;
+  color:#fff !important;
+  border-radius:10px;
+  padding:8px 12px;
+  font-size:14px;
+}
+
+/* placeholder */
+.flatpickr-alt-input::placeholder{
+  color:rgba(255,255,255,.6);
+}
+
+/* focus */
+.flatpickr-alt-input:focus{
+  background:rgba(71,50,129,.18) !important;
+  border-color:#9b5cff !important;
+  box-shadow:0 0 0 2px rgba(155,92,255,.4);
+}
+
+
+
+/* ===== TIME ===== */
+.time-wrap{
+  display:flex;
+  gap:10px;
+}
+.time-wrap select{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+  border-radius:10px;
+  padding:8px;
+}
+.flatpickr-calendar{
+background:#130628;
+border:1px solid #9b5cff;
+box-shadow:0 20px 40px rgba(137,56,243,.7);
+}
+
+.flatpickr-day{
+color:#fff;
+}
+
+.flatpickr-day:hover{
+background:#9b5cff;
+}
+/* Weekday names (Sun Mon Tue Wed...) */
+.flatpickr-weekday {
+  color: #d6b8ff !important;
+}
+
+/* Month name (May) */
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  color: #d6b8ff !important;
+}
+
+/* Year text (2026) */
+.flatpickr-current-month input.cur-year {
+  color: #d6b8ff !important;
+}
+
+/* Arrow icons */
+.flatpickr-prev-month svg,
+.flatpickr-next-month svg {
+  fill: #d6b8ff !important;
+}
+
+
+/* ===== INPUTS ===== */
+.form-control{
+  background:rgba(255,255,255,.12)!important;
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+  border-radius:10px;
+}
+.form-control:focus{
+  background:rgba(255,255,255,.18)!important;
+  border-color:#9b5cff;
+  box-shadow:0 0 0 2px rgba(155,92,255,.4);
+  color:#fff;
+}
+
+select{
+  background:#070411;
+  color:white;
+  border:1px solid #a855f7;
+}
+
+select option{
+  background:#070411;
+  color:#a855f7;
+}
+
+.time-wrap select{
+appearance:none;
+background:rgba(255,255,255,.12);
+border:1px solid rgba(255,255,255,.15);
+color:#fff;
+border-radius:10px;
+padding:8px 12px;
+font-size:14px;
+}
+
+.time-wrap select option{
+background:#14082b;
+color:#fff;
+}
+
+/* total */
+.total-box{
+margin-top:12px;
+padding:10px;
+border-radius:12px;
+background:rgba(155,92,255,.25);
+text-align:center;
+font-size:15px;
+font-weight:600;
+}
+
+.error-text{
+  color:#ff6b6b;
+  font-size:13px;
+  margin-top:6px;
+  display:none;
+}
+
+/* button */
+.btn-main{
+width:100%;
+margin-top:14px;
+padding:11px;
+border-radius:30px;
+background:linear-gradient(135deg,#9b5cff,#6a00ff);
+border:none;
+color:#fff;
+font-size:14px;
+font-weight:500;
+transition:.25s;
+}
+
+.btn-main:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 30px rgba(155,92,255,.6);
+}
+
+/* back button */
+.back-link{
+display:block;
+text-align:center;
+margin-top:14px;
+font-size:13px;
+color:#d6b8ff;
+text-decoration:none;
+}
+
+.back-link:hover{
+color:#fff;
+text-decoration:none;
+}
+
+/* ══ SUCCESS OVERLAY ══ */
+.success-overlay{
+  position:fixed;inset:0;background:rgba(11,0,24,.96);
+  backdrop-filter:blur(14px);display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;gap:18px;
+}
+.success-overlay.show{display:flex;animation:fadeUpSuccess .4s ease;}
+@keyframes fadeUpSuccess{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.tick-wrap{
+  width:110px;height:110px;border-radius:50%;
+  background:rgba(34,197,94,.08);border:2px solid rgba(34,197,94,.2);
+  display:flex;align-items:center;justify-content:center;
+}
+.tick-svg{width:58px;height:58px;}
+.tick-circle{
+  fill:none;stroke:#22c55e;stroke-width:3;stroke-dasharray:283;stroke-dashoffset:283;
+  transform-origin:center;transform:rotate(-90deg);
+  transition:stroke-dashoffset .6s cubic-bezier(.65,0,.35,1);
+}
+.tick-check{
+  fill:none;stroke:#22c55e;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:60;stroke-dashoffset:60;transition:stroke-dashoffset .4s ease .55s;
+}
+.success-overlay.show .tick-circle{stroke-dashoffset:0;}
+.success-overlay.show .tick-check{stroke-dashoffset:0;}
+.success-title{font-size:24px;font-weight:700;color:#fff;}
+.success-sub{font-size:13px;color:rgba(255,255,255,.4);text-align:center;max-width:280px;line-height:1.7;}
+.redirect-txt{font-size:12px;color:rgba(255,255,255,.25);font-weight:400;}
+
+</style>
+</head>
+
+<body>
+
+<div class="bubbles">
+<span></span><span></span><span></span><span></span><span></span>
+</div>
+
+<div class="glass-card">
+
+<h2>Choose Your Plan</h2>
+
+<div class="plan-box">
+<div class="plan-name">{{ plan.name }}</div>
+<div class="plan-row"><span>Base Price</span><span>₹ {{ plan.price }}</span></div>
+<div class="plan-row"><span>Food / Person</span><span>₹ {{ plan.food_per_head }}</span></div>
+</div>
+
+<form method="POST" onsubmit="handleSubmit(event)" id="planForm">
+{% csrf_token %}
+
+<input type="hidden" id="basePrice" value="{{ plan.price }}">
+<input type="hidden" id="foodPrice" value="{{ plan.food_per_head }}">
+
+<div class="form-group">
+<label>Event Name</label>
+<input type="text" name="event_name" class="form-control" required>
+</div>
+
+<div class="form-group">
+<label>Hotel Name</label>
+<input type="text" name="hotel_name" class="form-control" required>
+</div>
+
+<div class="form-group">
+<label>Location</label>
+<input type="text" name="location" class="form-control" required>
+</div>
+
+<div class="form-group">
+<label>Date</label>
+<input 
+type="text"
+id="eventDate"
+name="date"
+class="form-control"
+placeholder="Choose event date"
+required>
+</div>
+
+<div class="form-group">
+<label>Time</label>
+
+<div class="time-wrap">
+
+<select id="hour" onchange="syncTime()">
+<option>1</option><option>2</option><option>3</option>
+<option>4</option><option>5</option><option>6</option>
+<option>7</option><option>8</option><option>9</option>
+<option>10</option><option>11</option><option>12</option>
+</select>
+
+<select id="ampm" onchange="syncTime()">
+<option>AM</option>
+<option>PM</option>
+</select>
+
+</div>
+
+<input type="hidden" name="time" id="finalTime">
+
+</div>
+
+<div class="form-group">
+<label>People Count</label>
+<input type="number"
+       id="people"
+       name="people_count"
+       class="form-control"
+       min="50"
+       oninput="validatePeople()"
+       required>
+<div id="peopleError" class="error-text">Minimum 50 people required</div>
+</div>
+
+<div class="total-box">
+Total Amount: ₹ <span id="totalAmount">0</span>
+</div>
+
+<button id="submitBtn" class="btn-main" type="submit">
+Request
+</button>
+
+</form>
+
+<a href="/mainPage/" class="back-link">
+← Back to Home
+</a>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+
+function calculateTotal(){
+
+const base = +document.getElementById("basePrice").value || 0
+const food = +document.getElementById("foodPrice").value || 0
+const people = +document.getElementById("people").value || 0
+
+document.getElementById("totalAmount").innerText =
+base + (food * people)
+
+}
+function syncTime(){
+
+  let hour = parseInt(document.getElementById("hour").value);
+  let ampm = document.getElementById("ampm").value;
+
+  if (ampm === "PM" && hour < 12) {
+      hour += 12;
+  }
+
+  if (ampm === "AM" && hour === 12) {
+      hour = 0;
+  }
+
+  let formattedTime = String(hour).padStart(2,"0") + ":00:00";
+
+  document.getElementById("finalTime").value = formattedTime;
+}
+syncTime();
+
+const minDate = new Date()
+minDate.setMonth(minDate.getMonth()+2)
+
+const maxDate = new Date()
+maxDate.setMonth(maxDate.getMonth()+5)
+
+function validatePeople(){
+
+ const v = +document.getElementById("people").value || 0;
+ const error = document.getElementById("peopleError");
+ const submit = document.getElementById("submitBtn");
+
+ if(v < 50){
+     error.style.display = "block";
+     submit.disabled = true;
+ }else{
+     error.style.display = "none";
+     submit.disabled = false;
+ }
+
+ calculateTotal();
+}
+
+flatpickr("#eventDate",{
+
+altInput:true,
+altFormat:"d M Y",
+dateFormat:"Y-m-d",
+minDate:minDate,
+maxDate:maxDate,
+disableMobile:true
+
+})
+
+function handleSubmit(e){
+  e.preventDefault();
+  const overlay = document.getElementById("successOverlay");
+  overlay.classList.add("show");
+  
+  let count = 3;
+  const countEl = document.getElementById("countdown");
+  
+  const timer = setInterval(() => {
+    count--;
+    countEl.textContent = count;
+    if(count <= 0){
+      clearInterval(timer);
+      document.getElementById("planForm").submit();
+    }
+  }, 1000);
+}
+
+</script>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="tick-wrap">
+    <svg class="tick-svg" viewBox="0 0 100 100">
+      <circle class="tick-circle" cx="50" cy="50" r="45"/>
+      <path class="tick-check" d="M30 52l15 15 25-25"/>
+    </svg>
+  </div>
+  <div class="success-title">Request Sent!</div>
+  <div class="success-sub">Your booking request has been submitted successfully and is being reviewed.</div>
+  <div class="redirect-txt">Redirecting in <span id="countdown">3</span>s...</div>
+</div>
+
+</body>
+</html>
