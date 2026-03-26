@@ -71,11 +71,11 @@ WSGI_APPLICATION = 'Event.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'db_event'),
-        'USER': os.environ.get('MYSQL_USER', 'root'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
-        'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
-        'PORT': os.environ.get('MYSQL_PORT', '3306'),
+        'NAME': os.environ.get('MYSQLDATABASE', os.environ.get('MYSQL_DATABASE', 'db_event')),
+        'USER': os.environ.get('MYSQLUSER', os.environ.get('MYSQL_USER', 'root')),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD', os.environ.get('MYSQL_PASSWORD', '')),
+        'HOST': os.environ.get('MYSQLHOST', os.environ.get('MYSQL_HOST', 'localhost')),
+        'PORT': os.environ.get('MYSQLPORT', os.environ.get('MYSQL_PORT', '3306')),
     }
 }
 
