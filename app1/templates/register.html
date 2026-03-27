@@ -333,6 +333,11 @@ function sendOtp(){
     actionBtn.onclick=verifyOtp;
     startResendTimer();
     otpInputs[0].focus();
+  })
+  .catch(err => {
+    actionBtn.disabled = false;
+    actionBtn.innerText = "Send OTP";
+    console.error("OTP send error:", err);
   });
 }
 

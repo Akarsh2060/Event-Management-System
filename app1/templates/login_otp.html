@@ -243,6 +243,11 @@ function sendOtp(){
       actionBtn.innerText="Verify OTP";
       actionBtn.onclick = verifyOtp;
     }
+  })
+  .catch(err => {
+    actionBtn.disabled = false;
+    actionBtn.innerText = "Send OTP";
+    console.error("Login OTP error:", err);
   });
 }
 

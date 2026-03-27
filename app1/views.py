@@ -412,10 +412,11 @@ def register_send_otp(request):
 
     try:
         from django.core.mail import send_mail
+        from django.conf import settings
         send_mail(
             "Event Management Registration OTP",
             f"Your OTP for registration is {otp}. This code expires in 5 minutes.",
-            None,
+            settings.EMAIL_HOST_USER,
             [email],
             fail_silently=False,
         )
@@ -971,9 +972,9 @@ def send_login_otp(request):
     # 🔐 CHECK USER EXISTS
     try:
         if "@" in identifier:
-            tbl_register.objects.get(email=identifier)
+            profile = tbl_register.objects.get(email=identifier)
         else:
-            tbl_register.objects.get(phone=identifier)
+            profile = tbl_register.objects.get(phone=identifier)
     except tbl_register.DoesNotExist:
         return JsonResponse(
             {"redirect": "/register/"},
@@ -990,11 +991,11 @@ def send_login_otp(request):
 
     try:
         from django.core.mail import send_mail
-        # 'profile' was fetched in the try-except block above
+        from django.conf import settings
         send_mail(
             "Your Login OTP",
             f"Your login OTP is {otp}. This code expires in 5 minutes.",
-            None,
+            settings.EMAIL_HOST_USER,
             [profile.email],
             fail_silently=False,
         )
@@ -1084,9 +1085,9 @@ def send_forget_otp(request):
 
     try:
         if "@" in identifier:
-            tbl_register.objects.get(email=identifier)
+            profile = tbl_register.objects.get(email=identifier)
         else:
-            tbl_register.objects.get(phone=identifier)
+            profile = tbl_register.objects.get(phone=identifier)
     except tbl_register.DoesNotExist:
         return JsonResponse({"error": "User not found"}, status=404)
 
@@ -1100,11 +1101,11 @@ def send_forget_otp(request):
 
     try:
         from django.core.mail import send_mail
-        # 'profile' was fetched in the try-except block above
+        from django.conf import settings
         send_mail(
             "Password Reset OTP",
             f"Your OTP to reset your password is {otp}. This code expires in 5 minutes.",
-            None,
+            settings.EMAIL_HOST_USER,
             [profile.email],
             fail_silently=False,
         )
