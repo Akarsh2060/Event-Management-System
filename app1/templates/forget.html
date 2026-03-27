@@ -30,7 +30,6 @@ body{
   color:#fff;
 }
 
-/* bubbles */
 .bubble{position:absolute;border-radius:50%;background:rgba(168,85,247,.18);animation:drift linear infinite}
 .b1{width:240px;height:240px;left:-300px;top:15%;animation-duration:32s}
 .b2{width:160px;height:160px;left:-200px;top:55%;animation-duration:26s}
@@ -122,7 +121,7 @@ button{
 
 <div class="card">
 
-<span class="back" onclick="location.href='/login/'">← Back</span>
+<span class="back" onclick="location.href='/login/'">Back</span>
 
 <h2 id="title">Forgot Password</h2>
 
@@ -143,12 +142,12 @@ button{
 
   <div class="input-wrap">
     <input type="password" id="newPassword" placeholder="New password">
-    <span class="eye" onclick="togglePwd('newPassword')">👁</span>
+    <span class="eye" onclick="togglePwd('newPassword')">Show</span>
   </div>
 
   <div class="input-wrap">
     <input type="password" id="confirmPassword" placeholder="Confirm password">
-    <span class="eye" onclick="togglePwd('confirmPassword')">👁</span>
+    <span class="eye" onclick="togglePwd('confirmPassword')">Show</span>
   </div>
 
   <p class="error" id="passError"></p>
@@ -161,6 +160,10 @@ button{
 <script>
 const csrf = () => document.getElementById("csrf-token").value;
 const otpInputs = document.querySelectorAll(".otp-input");
+
+function readJsonSafe(res){
+  return res.json().catch(() => ({}));
+}
 
 otpInputs.forEach((input,idx)=>{
   input.addEventListener("input", e=>{
@@ -177,6 +180,7 @@ otpInputs.forEach((input,idx)=>{
     }
   });
 });
+
 otpInputs.forEach(input=>{
   input.addEventListener("paste", e=>{
     e.preventDefault();
@@ -203,22 +207,35 @@ function togglePwd(id){
 
 function sendOtp(){
   clearErrors();
+  otpBox.classList.remove("hidden");
+  identifier.style.display="none";
+  title.innerHTML=`OTP SENT TO ${identifier.value} <span class="change" onclick="location.reload()">Change?</span>`;
+  actionBtn.innerText="Sending OTP...";
+  actionBtn.disabled=true;
+
   fetch("/api/send-forget-otp/",{
     method:"POST",
     headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
     body:JSON.stringify({identifier:identifier.value.trim()})
-  }).then(r=>{
-    if(!r.ok) throw 0;
-    identifier.style.display="none";
-    title.innerHTML=`OTP SENT TO ${identifier.value} <span class="change" onclick="location.reload()">Change?</span>`;
-    otpBox.classList.remove("hidden");
+  }).then(async r=>{
+    const payload = await readJsonSafe(r);
+    if(!r.ok){
+      otpBox.classList.add("hidden");
+      identifier.style.display="block";
+      title.innerText="Forgot Password";
+      actionBtn.innerText="Send OTP";
+      actionBtn.disabled=false;
+      userError.innerText = payload.error || "Unable to send OTP right now.";
+      throw 0;
+    }
     actionBtn.innerText="Verify OTP";
+    actionBtn.disabled=false;
     actionBtn.onclick=verifyOtp;
   }).catch(()=>userError.style.display="block");
 }
 
 function verifyOtp(){
-   clearErrors();
+  clearErrors();
   otpError.style.display="none";
   fetch("/api/verify-forget-otp/",{
     method:"POST",
@@ -227,8 +244,12 @@ function verifyOtp(){
       identifier:identifier.value,
       otp:[...otpInputs].map(i=>i.value).join("")
     })
-  }).then(r=>{
-    if(!r.ok) throw 0;
+  }).then(async r=>{
+    const payload = await readJsonSafe(r);
+    if(!r.ok){
+      otpError.innerText = payload.error || "Invalid OTP";
+      throw 0;
+    }
     otpBox.classList.add("hidden");
     resetBox.classList.remove("hidden");
     title.innerText="Reset Password";
@@ -236,6 +257,7 @@ function verifyOtp(){
     actionBtn.onclick=updatePassword;
   }).catch(()=>otpError.style.display="block");
 }
+
 function clearErrors(){
   userError.style.display="none";
   otpError.style.display="none";
@@ -249,12 +271,14 @@ function updatePassword(){
 
   if(p.length<6){
     passError.innerText="Password must be at least 6 characters";
-    passError.style.display="block"; return;
+    passError.style.display="block";
+    return;
   }
 
   if(p!==c){
     passError.innerText="Passwords do not match";
-    passError.style.display="block"; return;
+    passError.style.display="block";
+    return;
   }
 
   fetch("/api/reset-password/",{
@@ -264,7 +288,8 @@ function updatePassword(){
   }).then(r=>{
     if(r.status===409){
       passError.innerText="New password cannot be same as old password";
-      passError.style.display="block"; return;
+      passError.style.display="block";
+      return;
     }
     if(!r.ok) throw 0;
     alert("Password updated. Please login.");

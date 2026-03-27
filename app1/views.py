@@ -24,8 +24,14 @@ from django.contrib.auth.hashers import make_password,check_password
 from django.db.models import Q
 from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from decimal import Decimal
 import os
+
+
+def _otp_error_response(message, status=503):
+    return JsonResponse({"error": message}, status=status)
+
 
 def index(request):
     return render(request,'index.html')
@@ -392,10 +398,35 @@ def register(request):
     return render(request, "register.html")
 
 def register_send_otp(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
     data = json.loads(request.body)
 
-    email = data["email"]
-    phone = data["phone"]
+    email = (data.get("email") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    uname = (data.get("uname") or "").strip()
+    password = data.get("password") or ""
+    confirm_password = data.get("confirm_password") or ""
+    errors = {}
+
+    if not uname:
+        errors["uname"] = "Name is required"
+
+    if not email:
+        errors["email"] = "Email is required"
+
+    if not phone:
+        errors["phone"] = "Phone is required"
+
+    if not password:
+        errors["password"] = "Password is required"
+
+    if password != confirm_password:
+        errors["password"] = "Passwords do not match"
+
+    if errors:
+        return JsonResponse({"errors": errors}, status=400)
 
     if User.objects.filter(email=email).exists():
         return JsonResponse({"errors":{"email":"Email already exists"}}, status=400)
@@ -411,18 +442,29 @@ def register_send_otp(request):
     }
 
     print("REGISTER OTP:", otp)  # dev only
-    send_otp_email(email, otp)
+    try:
+        send_otp_email(email, otp)
+    except Exception as exc:
+        request.session.pop("register_otp", None)
+        return _otp_error_response(str(exc))
 
-    return JsonResponse({"success":True})
+    return JsonResponse({
+        "success": True,
+        "message": "OTP sent",
+        "expires_in_minutes": settings.OTP_EXPIRY_MINUTES,
+    })
 
 def register_verify_otp(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
     data = json.loads(request.body)
-    entered_otp = data["otp"]
+    entered_otp = (data.get("otp") or "").strip()
 
     session = request.session.get("register_otp")
 
     if not session or entered_otp != session["otp"]:
-        return HttpResponse(status=400)
+        return JsonResponse({"error": "Invalid OTP"}, status=400)
 
     d = session["data"]
 
@@ -445,7 +487,9 @@ def register_verify_otp(request):
     # Clear OTP session data
     del request.session["register_otp"]
 
-    return HttpResponse(status=200)
+    auth_login(request, user)
+
+    return JsonResponse({"success": True})
 
 
 def viewUser(request):
@@ -965,15 +1009,22 @@ def send_login_otp(request):
     request.session["login_otp"] = otp
     request.session["login_identifier"] = identifier
     request.session["login_otp_expiry"] = (
-        timezone.now() + timedelta(minutes=5)
+        timezone.now() + timedelta(minutes=settings.OTP_EXPIRY_MINUTES)
     ).isoformat()
 
-    print(f"[LOGIN OTP] {identifier} → {otp}")
+    print(f"[LOGIN OTP] {identifier} -> {otp}")
     
     # 🔐 SEND OTP VIA EMAIL
-    send_otp_email(profile_obj.email, otp)
+    try:
+        send_otp_email(profile_obj.email, otp)
+    except Exception as exc:
+        clear_login_otp_session(request)
+        return _otp_error_response(str(exc))
 
-    return JsonResponse({"message": "OTP sent"})
+    return JsonResponse({
+        "message": "OTP sent",
+        "expires_in_minutes": settings.OTP_EXPIRY_MINUTES,
+    })
 
 
 # =========================
@@ -1067,10 +1118,10 @@ def send_forget_otp(request):
     request.session["reset_otp"] = otp
     request.session["reset_identifier"] = identifier
     request.session["reset_otp_expiry"] = (
-        timezone.now() + timedelta(minutes=5)
+        timezone.now() + timedelta(minutes=settings.OTP_EXPIRY_MINUTES)
     ).isoformat()
 
-    print(f"[RESET OTP] {identifier} → {otp}")
+    print(f"[RESET OTP] {identifier} -> {otp}")
     
     # 🔐 SEND OTP VIA EMAIL
     try:
@@ -1080,9 +1131,16 @@ def send_forget_otp(request):
             profile = tbl_register.objects.get(phone=identifier)
         send_otp_email(profile.email, otp)
     except tbl_register.DoesNotExist:
-        pass # Handle properly if needed
+        clear_reset_otp_session(request)
+        return JsonResponse({"error": "User not found"}, status=404)
+    except Exception as exc:
+        clear_reset_otp_session(request)
+        return _otp_error_response(str(exc))
 
-    return JsonResponse({"message": "OTP sent"})
+    return JsonResponse({
+        "message": "OTP sent",
+        "expires_in_minutes": settings.OTP_EXPIRY_MINUTES,
+    })
 
 def verify_forget_otp(request):
     if request.method != "POST":
@@ -1565,5 +1623,3 @@ def viewRefunds(request):
         'refunds': refunds,
         'refunds_total': refunds_total,
     })
-
-
