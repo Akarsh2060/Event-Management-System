@@ -74,7 +74,12 @@ WSGI_APPLICATION = 'Event.wsgi.application'
 
 # Database Configuration
 # Uses MySQL if real credentials exist, otherwise falls back to local SQLite
-if os.environ.get('MYSQLHOST') and os.environ.get('MYSQLHOST') not in ('your_database_host', 'localhost', '127.0.0.1'):
+is_mysql = os.environ.get('MYSQLHOST') and os.environ.get('MYSQLHOST') not in ('your_database_host', 'localhost', '127.0.0.1')
+
+# Detect if we are running in Vercel
+IS_VERCEL = "VERCEL" in os.environ
+
+if is_mysql:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -85,6 +90,10 @@ if os.environ.get('MYSQLHOST') and os.environ.get('MYSQLHOST') not in ('your_dat
             'PORT': os.environ.get('MYSQLPORT', '3306'),
         }
     }
+elif IS_VERCEL:
+    # ❌ Vercel is read-only, we should NOT use SQLite here.
+    # We raise an error so the logs/frontend explain clearly what's missing.
+    raise Exception("Database configuration missing! You must set MYSQLHOST and other DB variables in Vercel. SQLite is not supported on Vercel.")
 else:
     DATABASES = {
         'default': {
