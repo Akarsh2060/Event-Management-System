@@ -1,8 +1,10 @@
 import requests
+import logging
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
+logger = logging.getLogger(__name__)
 
 GMAIL_PLACEHOLDERS = {
     "your-email@gmail.com",
@@ -52,6 +54,13 @@ def send_otp_email(email, otp):
             fail_silently=False,
         )
     except Exception as exc:
+        logger.exception(
+            "Gmail OTP send failed for %s using host=%s port=%s user=%s",
+            email,
+            settings.EMAIL_HOST,
+            settings.EMAIL_PORT,
+            host_user,
+        )
         raise RuntimeError(
             "Unable to send OTP email through Gmail. Check the Gmail address, "
             "app password, and SMTP access."
