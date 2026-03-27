@@ -410,7 +410,17 @@ def register_send_otp(request):
         "data": data
     }
 
-    print("REGISTER OTP:", otp)  # dev only
+    try:
+        from django.core.mail import send_mail
+        send_mail(
+            "Event Management Registration OTP",
+            f"Your OTP for registration is {otp}. This code expires in 5 minutes.",
+            None,
+            [email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print("Email sending failed:", e)
 
     return JsonResponse({"success":True})
 
@@ -840,10 +850,22 @@ def resend_otp(request):
         request.session['otp_expiry'] = (timezone.now() + timedelta(minutes=5)).isoformat()
 
         # Send the new OTP
-        send_otp_sms(phone, new_otp)
+        # send_otp_sms(phone, new_otp)
+        email = data.get('email')
+        if email:
+            try:
+                from django.core.mail import send_mail
+                send_mail(
+                    "Resent OTP",
+                    f"Your new OTP is {new_otp}. This code expires in 5 minutes.",
+                    None,
+                    [email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print("Email sending failed:", e)
 
-        print(f"[{timezone.now()}] Resent OTP to {phone}: {new_otp}")
-        messages.success(request, "OTP resent to your phone.")
+        messages.success(request, "OTP sent to your email.")
     else:
         messages.error(request, "Session expired. Please register again.")
         return redirect("register")
@@ -966,9 +988,20 @@ def send_login_otp(request):
         timezone.now() + timedelta(minutes=5)
     ).isoformat()
 
-    print(f"[LOGIN OTP] {identifier} → {otp}")
+    try:
+        from django.core.mail import send_mail
+        # 'profile' was fetched in the try-except block above
+        send_mail(
+            "Your Login OTP",
+            f"Your login OTP is {otp}. This code expires in 5 minutes.",
+            None,
+            [profile.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print("Email sending failed:", e)
 
-    return JsonResponse({"message": "OTP sent"})
+    return JsonResponse({"message": "OTP sent to your email"})
 
 
 # =========================
@@ -1065,9 +1098,20 @@ def send_forget_otp(request):
         timezone.now() + timedelta(minutes=5)
     ).isoformat()
 
-    print(f"[RESET OTP] {identifier} → {otp}")
+    try:
+        from django.core.mail import send_mail
+        # 'profile' was fetched in the try-except block above
+        send_mail(
+            "Password Reset OTP",
+            f"Your OTP to reset your password is {otp}. This code expires in 5 minutes.",
+            None,
+            [profile.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print("Email sending failed:", e)
 
-    return JsonResponse({"message": "OTP sent"})
+    return JsonResponse({"message": "OTP sent to your email"})
 
 def verify_forget_otp(request):
     if request.method != "POST":
