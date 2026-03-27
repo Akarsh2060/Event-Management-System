@@ -354,8 +354,10 @@ function sendOtp(){
     console.error("OTP send error:", err);
     if (err.status === 403) {
       alert("Security Error (CSRF). Please refresh the page and try again.");
+    } else if (err.status === 500 && err.data?.errors?.msg) {
+      alert("Server Error: " + err.data.errors.msg);
     } else if (err.status === 504 || err.status === 500) {
-      alert("Server error or timeout. Please check your internet and try again.");
+      alert("Server error or timeout. Please check your Vercel logs and environment variables.");
     } else {
       alert("Connection Error. Please check your internet or try again later.");
     }

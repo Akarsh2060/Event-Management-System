@@ -245,8 +245,10 @@ function sendOtp(){
       userError.style.display="block";
     } else if (err.status === 403) {
       alert("Security Error (CSRF). Please refresh the page.");
+    } else if (err.status === 500 && err.data?.error) {
+      alert("Server Error: " + err.data.error);
     } else {
-      alert("Error sending OTP. Please try again later.");
+      alert("Error sending OTP. Please check your Vercel logs and environment variables.");
     }
   });
 }
