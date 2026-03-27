@@ -392,41 +392,53 @@ def register(request):
     return render(request, "register.html")
 
 def register_send_otp(request):
-    data = json.loads(request.body)
-
-    email = data["email"]
-    phone = data["phone"]
-
-    if User.objects.filter(email=email).exists():
-        return JsonResponse({"errors":{"email":"Email already exists"}}, status=400)
-
-    if User.objects.filter(username=phone).exists():
-        return JsonResponse({"errors":{"phone":"Phone already exists"}}, status=400)
-
-    otp = random.randint(100000,999999)
-
-    request.session["register_otp"] = {
-        "otp": str(otp),
-        "data": data
-    }
-
-    print(f"[DEBUG] Registration OTP generated: {otp} for {email}")
-
     try:
+        data = json.loads(request.body)
+        email = data.get("email")
+        phone = data.get("phone")
+
+        if not email or not phone:
+             return JsonResponse({"errors":{"msg":"Email and Phone are required"}}, status=400)
+
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({"errors":{"email":"Email already exists"}}, status=400)
+
+        if User.objects.filter(username=phone).exists():
+            return JsonResponse({"errors":{"phone":"Phone already exists"}}, status=400)
+
+        otp = random.randint(100000,999999)
+
+        request.session["register_otp"] = {
+            "otp": str(otp),
+            "data": data
+        }
+
+        print(f"[DEBUG] Registration OTP generated: {otp} for {email}")
+
         from django.core.mail import send_mail
         from django.conf import settings
-        send_mail(
-            "Event Management Registration OTP",
-            f"Your OTP for registration is {otp}. This code expires in 5 minutes.",
-            settings.EMAIL_HOST_USER,
-            [email],
-            fail_silently=True,
-        )
-        print("[DEBUG] send_mail call finished (fail_silently=True)")
-    except Exception as e:
-        print("[ERROR] Email sending failed (should not happen with fail_silently=True):", e)
 
-    return JsonResponse({"success":True})
+        if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+            print("[ERROR] Email configuration missing in environment variables!")
+            return JsonResponse({"errors":{"msg":"Server email configuration missing"}}, status=500)
+
+        try:
+            send_mail(
+                "Event Management Registration OTP",
+                f"Your OTP for registration is {otp}. This code expires in 5 minutes.",
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+            print("[DEBUG] send_mail call finished successfully")
+        except Exception as e:
+            print(f"[ERROR] Email sending failed: {e}")
+            return JsonResponse({"errors":{"msg":"Failed to send OTP email"}}, status=500)
+
+        return JsonResponse({"success":True})
+    except Exception as e:
+        print(f"[ERROR] register_send_otp exception: {e}")
+        return JsonResponse({"errors":{"msg": str(e)}}, status=500)
 
 def register_verify_otp(request):
     data = json.loads(request.body)
@@ -963,49 +975,60 @@ def login_otp_page(request):
 # =========================
 
 def send_login_otp(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=400)
-
-    data = json.loads(request.body)
-    identifier = data.get("identifier")
-
-    if not identifier:
-        return JsonResponse({"error": "Identifier required"}, status=400)
-
-    # 🔐 CHECK USER EXISTS
     try:
-        if "@" in identifier:
-            profile = tbl_register.objects.get(email=identifier)
-        else:
-            profile = tbl_register.objects.get(phone=identifier)
-    except tbl_register.DoesNotExist:
-        return JsonResponse(
-            {"redirect": "/register/"},
-            status=404
-        )
+        if request.method != "POST":
+            return JsonResponse({"error": "Invalid request"}, status=400)
 
-    otp = str(random.randint(100000, 999999))
+        data = json.loads(request.body)
+        identifier = data.get("identifier")
 
-    request.session["login_otp"] = otp
-    request.session["login_identifier"] = identifier
-    request.session["login_otp_expiry"] = (
-        timezone.now() + timedelta(minutes=5)
-    ).isoformat()
+        if not identifier:
+            return JsonResponse({"error": "Identifier required"}, status=400)
 
-    try:
+        # 🔐 CHECK USER EXISTS
+        try:
+            if "@" in identifier:
+                profile = tbl_register.objects.get(email=identifier)
+            else:
+                profile = tbl_register.objects.get(phone=identifier)
+        except tbl_register.DoesNotExist:
+            return JsonResponse(
+                {"redirect": "/register/"},
+                status=404
+            )
+
+        otp = str(random.randint(100000, 999999))
+
+        request.session["login_otp"] = otp
+        request.session["login_identifier"] = identifier
+        request.session["login_otp_expiry"] = (
+            timezone.now() + timedelta(minutes=5)
+        ).isoformat()
+
         from django.core.mail import send_mail
         from django.conf import settings
-        send_mail(
-            "Your Login OTP",
-            f"Your login OTP is {otp}. This code expires in 5 minutes.",
-            settings.EMAIL_HOST_USER,
-            [profile.email],
-            fail_silently=False,
-        )
-    except Exception as e:
-        print("Email sending failed:", e)
 
-    return JsonResponse({"message": "OTP sent to your email"})
+        if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+            print("[ERROR] Email configuration missing in environment variables!")
+            return JsonResponse({"error": "Server email configuration missing"}, status=500)
+
+        try:
+            send_mail(
+                "Your Login OTP",
+                f"Your login OTP is {otp}. This code expires in 5 minutes.",
+                settings.EMAIL_HOST_USER,
+                [profile.email],
+                fail_silently=False,
+            )
+            print("[DEBUG] Login OTP send_mail call finished successfully")
+        except Exception as e:
+            print(f"[ERROR] Login OTP email sending failed: {e}")
+            return JsonResponse({"error": "Failed to send OTP email"}, status=500)
+
+        return JsonResponse({"message": "OTP sent to your email"})
+    except Exception as e:
+        print(f"[ERROR] send_login_otp exception: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 # =========================
@@ -1077,45 +1100,56 @@ def forget_password_page(request):
 
 
 def send_forget_otp(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=400)
-
-    data = json.loads(request.body)
-    identifier = data.get("identifier")
-
-    if not identifier:
-        return JsonResponse({"error": "Identifier required"}, status=400)
-
     try:
-        if "@" in identifier:
-            profile = tbl_register.objects.get(email=identifier)
-        else:
-            profile = tbl_register.objects.get(phone=identifier)
-    except tbl_register.DoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
+        if request.method != "POST":
+            return JsonResponse({"error": "Invalid request"}, status=400)
 
-    otp = str(random.randint(100000, 999999))
+        data = json.loads(request.body)
+        identifier = data.get("identifier")
 
-    request.session["reset_otp"] = otp
-    request.session["reset_identifier"] = identifier
-    request.session["reset_otp_expiry"] = (
-        timezone.now() + timedelta(minutes=5)
-    ).isoformat()
+        if not identifier:
+            return JsonResponse({"error": "Identifier required"}, status=400)
 
-    try:
+        try:
+            if "@" in identifier:
+                profile = tbl_register.objects.get(email=identifier)
+            else:
+                profile = tbl_register.objects.get(phone=identifier)
+        except tbl_register.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+        otp = str(random.randint(100000, 999999))
+
+        request.session["reset_otp"] = otp
+        request.session["reset_identifier"] = identifier
+        request.session["reset_otp_expiry"] = (
+            timezone.now() + timedelta(minutes=5)
+        ).isoformat()
+
         from django.core.mail import send_mail
         from django.conf import settings
-        send_mail(
-            "Password Reset OTP",
-            f"Your OTP to reset your password is {otp}. This code expires in 5 minutes.",
-            settings.EMAIL_HOST_USER,
-            [profile.email],
-            fail_silently=False,
-        )
-    except Exception as e:
-        print("Email sending failed:", e)
 
-    return JsonResponse({"message": "OTP sent to your email"})
+        if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+            print("[ERROR] Email configuration missing in environment variables!")
+            return JsonResponse({"error": "Server email configuration missing"}, status=500)
+
+        try:
+            send_mail(
+                "Password Reset OTP",
+                f"Your OTP to reset your password is {otp}. This code expires in 5 minutes.",
+                settings.EMAIL_HOST_USER,
+                [profile.email],
+                fail_silently=False,
+            )
+            print("[DEBUG] Forget OTP send_mail call finished successfully")
+        except Exception as e:
+            print(f"[ERROR] Forget OTP email sending failed: {e}")
+            return JsonResponse({"error": "Failed to send OTP email"}, status=500)
+
+        return JsonResponse({"message": "OTP sent to your email"})
+    except Exception as e:
+        print(f"[ERROR] send_forget_otp exception: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
 
 def verify_forget_otp(request):
     if request.method != "POST":

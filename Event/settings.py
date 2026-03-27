@@ -20,10 +20,11 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-# Allow Railway auto-generated domains
+# Allow Railway and Vercel auto-generated domains
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://*.up.railway.app',
+    'https://*.vercel.app',
 ]
 
 # Application definition
@@ -71,17 +72,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Event.wsgi.application'
 
 
-# Database - reads from Railway environment variables
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE', os.environ.get('MYSQL_DATABASE', 'db_event')),
-        'USER': os.environ.get('MYSQLUSER', os.environ.get('MYSQL_USER', 'root')),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', os.environ.get('MYSQL_PASSWORD', '')),
-        'HOST': os.environ.get('MYSQLHOST', os.environ.get('MYSQL_HOST', 'localhost')),
-        'PORT': os.environ.get('MYSQLPORT', os.environ.get('MYSQL_PORT', '3306')),
+# Database Configuration
+# Uses MySQL if real credentials exist, otherwise falls back to local SQLite
+if os.environ.get('MYSQLHOST') and os.environ.get('MYSQLHOST') not in ('your_database_host', 'localhost', '127.0.0.1'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQLDATABASE'),
+            'USER': os.environ.get('MYSQLUSER'),
+            'PASSWORD': os.environ.get('MYSQLPASSWORD'),
+            'HOST': os.environ.get('MYSQLHOST'),
+            'PORT': os.environ.get('MYSQLPORT', '3306'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

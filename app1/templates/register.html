@@ -322,7 +322,15 @@ function sendOtp(){
       confirm_password:confirm_password.value
     })
   })
-  .then(r=>r.json())
+  .then(async r => {
+    const isJson = r.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await r.json() : null;
+
+    if (!r.ok) {
+      throw { data, status: r.status };
+    }
+    return data;
+  })
   .then(r=>{
     actionBtn.disabled = false;
     if(r.errors){
@@ -344,6 +352,13 @@ function sendOtp(){
     actionBtn.disabled = false;
     actionBtn.innerText = "Send OTP";
     console.error("OTP send error:", err);
+    if (err.status === 403) {
+      alert("Security Error (CSRF). Please refresh the page and try again.");
+    } else if (err.status === 504 || err.status === 500) {
+      alert("Server error or timeout. Please check your internet and try again.");
+    } else {
+      alert("Connection Error. Please check your internet or try again later.");
+    }
   });
 }
 

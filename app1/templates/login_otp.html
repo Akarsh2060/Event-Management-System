@@ -212,6 +212,7 @@ function sendOtp(){
 
   actionBtn.disabled = true;
   actionBtn.innerText = "Sending...";
+  userError.style.display="none";
 
   fetch("/api/send-otp/",{
     method:"POST",
@@ -222,38 +223,44 @@ function sendOtp(){
     },
     body:JSON.stringify({identifier:id})
   })
-  .then(res=>{
+  .then(async res => {
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await res.json() : null;
+    if (!res.ok) throw { data, status: res.status };
+    return data;
+  })
+  .then(data=>{
     actionBtn.disabled = false;
-    if(res.status === 404){
-      actionBtn.innerText = "Send OTP";
-      userError.style.display="block";
-  return;
-}
-    else{
-      otpStage = true;
-      userError.style.display="none";
+    otpStage = true;
+    userError.style.display="none";
 
-     title.innerHTML = `
-  OTP SENT TO ${id}
-  <span class="change" onclick="handleBack()">Change?</span>
-`;
-      identifier.style.display = "none"; // ✅ Use display instead of class    
-      // ✅ SHOW OTP ONLY AFTER SUCCESS (with delay for smooth transition)
-      setTimeout(() => {
-        const otpBox = document.getElementById("otpBox");
-        otpBox.classList.remove("hidden");
-        otpInputs[0].focus();
-      }, 300);
-      
-      resendOtpEl.style.display="block";
-      actionBtn.innerText="Verify OTP";
-      actionBtn.onclick = verifyOtp;
-    }
+    title.innerHTML = `
+      OTP SENT TO ${id}
+      <span class="change" onclick="handleBack()">Change?</span>
+    `;
+    identifier.style.display = "none";
+    setTimeout(() => {
+      const otpBox = document.getElementById("otpBox");
+      otpBox.classList.remove("hidden");
+      otpInputs[0].focus();
+    }, 300);
+    
+    resendOtpEl.style.display="block";
+    actionBtn.innerText="Verify OTP";
+    actionBtn.onclick = verifyOtp;
   })
   .catch(err => {
     actionBtn.disabled = false;
     actionBtn.innerText = "Send OTP";
     console.error("Login OTP error:", err);
+    if(err.status === 404){
+      userError.innerText = "User not found. Please register.";
+      userError.style.display="block";
+    } else if (err.status === 403) {
+      alert("Security Error (CSRF). Please refresh the page.");
+    } else {
+      alert("Error sending OTP. Please try again later.");
+    }
   });
 }
 

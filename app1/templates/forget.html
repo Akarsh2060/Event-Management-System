@@ -212,25 +212,42 @@ function togglePwd(id){
 }
 
 function sendOtp(){
+  const id = identifier.value.trim();
+  if(!id) return;
   actionBtn.disabled = true;
   actionBtn.innerText = "Sending...";
   clearErrors();
   fetch("/api/send-forget-otp/",{
     method:"POST",
     headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
-    body:JSON.stringify({identifier:identifier.value.trim()})
-  }).then(r=>{
+    body:JSON.stringify({identifier:id})
+  })
+  .then(async r => {
+    const isJson = r.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await r.json() : null;
+    if (!r.ok) throw { data, status: r.status };
+    return data;
+  })
+  .then(data=>{
     actionBtn.disabled = false;
-    if(!r.ok) throw 0;
     identifier.style.display="none";
-    title.innerHTML=`OTP SENT TO ${identifier.value} <span class="change" onclick="location.reload()">Change?</span>`;
+    title.innerHTML=`OTP SENT TO ${id} <span class="change" onclick="location.reload()">Change?</span>`;
     otpBox.classList.remove("hidden");
     actionBtn.innerText="Verify OTP";
     actionBtn.onclick=verifyOtp;
-  }).catch(()=>{
+  })
+  .catch(err => {
     actionBtn.disabled = false;
     actionBtn.innerText = "Send OTP";
-    userError.style.display="block";
+    console.error("Forget OTP error:", err);
+    if(err.status === 404){
+      userError.innerText = "User not found";
+      userError.style.display="block";
+    } else if (err.status === 403) {
+      alert("Security Error (CSRF). Please refresh the page.");
+    } else {
+      alert("Error sending OTP. Please try again later.");
+    }
   });
 }
 
