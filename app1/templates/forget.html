@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Zevents | Forgot Password</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#a855f7;
+  --secondary:#7c3aed;
+  --dark:#070411;
+  --card:#0d0a1a;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left,#3b1b6f,transparent 50%),
+    radial-gradient(circle at bottom right,#1b0f3a,transparent 50%),
+    var(--dark);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  color:#fff;
+}
+
+/* bubbles */
+.bubble{position:absolute;border-radius:50%;background:rgba(168,85,247,.18);animation:drift linear infinite}
+.b1{width:240px;height:240px;left:-300px;top:15%;animation-duration:32s}
+.b2{width:160px;height:160px;left:-200px;top:55%;animation-duration:26s}
+.b3{width:200px;height:200px;left:-250px;bottom:10%;animation-duration:38s}
+@keyframes drift{to{transform:translateX(160vw) translateY(-80px)}}
+
+.card{
+  width:380px;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(14px);
+  border-radius:18px;
+  padding:36px 32px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  z-index:2;
+}
+
+.back{font-size:13px;color:#c4b5fd;cursor:pointer;margin-bottom:14px;display:inline-block}
+.change{margin-left:10px;font-size:13px;color:#ae41f7;cursor:pointer}
+
+h2{font-size:22px;margin-bottom:18px}
+
+.input-wrap{position:relative}
+
+input{
+  width:100%;
+  padding:14px 16px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  margin-bottom:14px;
+}
+
+.eye{
+  position:absolute;
+  right:14px;
+  top:14px;
+  cursor:pointer;
+  opacity:.7;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  background:linear-gradient(135deg,var(--secondary),var(--primary));
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.hidden{display:none!important}
+
+.error{
+  color:#fca5a5;
+  font-size:13px;
+  margin:-8px 0 12px 4px;
+  display:none;
+}
+
+.otp-box{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:14px;
+}
+
+.otp-input{
+  width:48px;
+  height:52px;
+  text-align:center;
+  font-size:20px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
+<div class="bubble b1"></div>
+<div class="bubble b2"></div>
+<div class="bubble b3"></div>
+
+<div class="card">
+
+<span class="back" onclick="location.href='/login/'">← Back</span>
+
+<h2 id="title">Forgot Password</h2>
+
+<input id="identifier" placeholder="Enter phone number or email">
+<p class="error" id="userError">User not found</p>
+
+<div id="otpBox" class="otp-box hidden">
+  <input class="otp-input" maxlength="1">
+  <input class="otp-input" maxlength="1">
+  <input class="otp-input" maxlength="1">
+  <input class="otp-input" maxlength="1">
+  <input class="otp-input" maxlength="1">
+  <input class="otp-input" maxlength="1">
+</div>
+<p class="error" id="otpError">Invalid OTP</p>
+
+<div id="resetBox" class="hidden">
+
+  <div class="input-wrap">
+    <input type="password" id="newPassword" placeholder="New password">
+    <span class="eye" onclick="togglePwd('newPassword')">👁</span>
+  </div>
+
+  <div class="input-wrap">
+    <input type="password" id="confirmPassword" placeholder="Confirm password">
+    <span class="eye" onclick="togglePwd('confirmPassword')">👁</span>
+  </div>
+
+  <p class="error" id="passError"></p>
+</div>
+
+<button id="actionBtn" onclick="sendOtp()">Send OTP</button>
+
+</div>
+
+<script>
+const csrf = () => document.getElementById("csrf-token").value;
+const otpInputs = document.querySelectorAll(".otp-input");
+
+otpInputs.forEach((input,idx)=>{
+  input.addEventListener("input", e=>{
+    input.value = input.value.replace(/\D/g,"");
+
+    if(input.value && idx < otpInputs.length-1){
+      otpInputs[idx+1].focus();
+    }
+  });
+
+  input.addEventListener("keydown", e=>{
+    if(e.key === "Backspace" && !input.value && idx > 0){
+      otpInputs[idx-1].focus();
+    }
+  });
+});
+otpInputs.forEach(input=>{
+  input.addEventListener("paste", e=>{
+    e.preventDefault();
+
+    const paste = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .replace(/\D/g,"")
+      .slice(0,6);
+
+    paste.split("").forEach((num,i)=>{
+      if(otpInputs[i]){
+        otpInputs[i].value = num;
+      }
+    });
+
+    otpInputs[Math.min(paste.length-1,5)].focus();
+  });
+});
+
+function togglePwd(id){
+  const el=document.getElementById(id);
+  el.type = el.type === "password" ? "text" : "password";
+}
+
+function sendOtp(){
+  clearErrors();
+  fetch("/api/send-forget-otp/",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
+    body:JSON.stringify({identifier:identifier.value.trim()})
+  }).then(r=>{
+    if(!r.ok) throw 0;
+    identifier.style.display="none";
+    title.innerHTML=`OTP SENT TO ${identifier.value} <span class="change" onclick="location.reload()">Change?</span>`;
+    otpBox.classList.remove("hidden");
+    actionBtn.innerText="Verify OTP";
+    actionBtn.onclick=verifyOtp;
+  }).catch(()=>userError.style.display="block");
+}
+
+function verifyOtp(){
+   clearErrors();
+  otpError.style.display="none";
+  fetch("/api/verify-forget-otp/",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
+    body:JSON.stringify({
+      identifier:identifier.value,
+      otp:[...otpInputs].map(i=>i.value).join("")
+    })
+  }).then(r=>{
+    if(!r.ok) throw 0;
+    otpBox.classList.add("hidden");
+    resetBox.classList.remove("hidden");
+    title.innerText="Reset Password";
+    actionBtn.innerText="Update Password";
+    actionBtn.onclick=updatePassword;
+  }).catch(()=>otpError.style.display="block");
+}
+function clearErrors(){
+  userError.style.display="none";
+  otpError.style.display="none";
+  passError.style.display="none";
+}
+
+function updatePassword(){
+  const p=newPassword.value.trim();
+  const c=confirmPassword.value.trim();
+  passError.style.display="none";
+
+  if(p.length<6){
+    passError.innerText="Password must be at least 6 characters";
+    passError.style.display="block"; return;
+  }
+
+  if(p!==c){
+    passError.innerText="Passwords do not match";
+    passError.style.display="block"; return;
+  }
+
+  fetch("/api/reset-password/",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
+    body:JSON.stringify({password:p})
+  }).then(r=>{
+    if(r.status===409){
+      passError.innerText="New password cannot be same as old password";
+      passError.style.display="block"; return;
+    }
+    if(!r.ok) throw 0;
+    alert("Password updated. Please login.");
+    location.href="/login/";
+  }).catch(()=>alert("Something went wrong"));
+}
+</script>
+
+</body>
+</html>

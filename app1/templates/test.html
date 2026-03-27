@@ -1,0 +1,63 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
+from .models import Plan, tbl_booking
+
+def choosePlan(request, id):
+    plan = get_object_or_404(Plan, id=id)
+
+    uid = request.session.get('user_id')
+    if not uid:
+        return redirect('/login/')
+
+    if request.method == 'POST':
+        event_name = request.POST.get('event_name')
+        hotel_name = request.POST.get('hotel_name')
+        location = request.POST.get('location')
+        event_date = request.POST.get('date')   # format: DD-MM-YYYY
+        time = request.POST.get('time')
+        people_count = int(request.POST.get('people_count'))
+
+        # 1️⃣ Parse date FIRST
+        try:
+            selected_date = datetime.strptime(event_date, "%d-%m-%Y").date()
+        except (ValueError, TypeError):
+            return HttpResponse(
+                '<script>alert("Invalid date format");history.back();</script>'
+            )
+
+        # 2️⃣ Validate date range
+        today = date.today()
+        min_date = today + relativedelta(months=2)
+        max_date = today + relativedelta(months=5)
+
+        if not (min_date <= selected_date <= max_date):
+            return HttpResponse(
+                '<script>alert("Event date must be between 2 and 5 months from today.");history.back();</script>'
+            )
+
+        # 3️⃣ Price calculation
+        base_price = plan.price
+        food_price = plan.food_per_head or 0
+        total = base_price + (food_price * people_count)
+
+        # 4️⃣ Save booking
+        tbl_booking.objects.create(
+            user_id=uid,
+            plan=plan,
+            event_name=event_name,
+            hotel_name=hotel_name,
+            location=location,
+            date=selected_date,   # ✅ correct
+            time=time,
+            people_count=people_count,
+            total_amount=total,
+            status="Pending"
+        )
+
+        return HttpResponse(
+            '<script>alert("Request sent successfully");window.location="/mainPage/";</script>'
+        )
+
+    return render(request, 'choose.html', {'plan': plan})

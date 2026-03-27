@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Plan</title>
+    <link rel="icon" href="/static/images/zevntt.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0f0c1d;
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.12);
+            --text-main: #eaeaff;
+            --text-muted: #a6a6c3;
+            --accent: #8b5cf6;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ===== BODY (SCROLL OWNER) ===== */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top left, #2a2356, #0f0c1d);
+            color: var(--text-main);
+            overflow-y: auto;
+        }
+
+        /* ===== BACKGROUND BLOBS ===== */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            background: rgba(139, 92, 246, 0.18);
+            border-radius: 50%;
+            filter: blur(120px);
+            animation: float 14s infinite ease-in-out;
+            z-index: 0;
+        }
+
+        body::before {
+            top: -120px;
+            left: -120px;
+        }
+
+        body::after {
+            bottom: -160px;
+            right: -160px;
+            animation-delay: 7s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-50px); }
+        }
+
+        /* ===== PAGE WRAPPER (CENTERING LOGIC) ===== */
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== BACK BUTTON ===== */
+        .back-btn{
+            position: fixed;
+            top: 22px;
+            left: 22px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: .3px;
+            color: #c4b5fd;
+            background: rgba(18,15,27,.65);
+            border: 1px solid rgba(155,92,255,.35);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,.45);
+            transition: .25s ease;
+            z-index: 10;
+            text-decoration: none;
+        }
+
+        .back-btn:hover{
+            color: #fff;
+            background: rgba(155,92,255,.25);
+            box-shadow: 0 12px 35px rgba(155,92,255,.55);
+            transform: translateY(-1px);
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            width: 100%;
+            max-width: 520px;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+        }
+
+        h2 {
+            margin: 0 0 20px;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        /* ===== ALERT ===== */
+        .alert {
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fecaca;
+        }
+
+        /* ===== FORM ===== */
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-main);
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 14px 0;
+        }
+
+        h4 {
+            margin: 22px 0 12px;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        /* ===== FEATURES ===== */
+        #features input {
+            margin-bottom: 10px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 1px dashed var(--accent);
+            margin-top: 6px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            margin-top: 26px;
+            background: linear-gradient(135deg, var(--accent), #6d28d9);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.35);
+        }
+    </style>
+</head>
+
+<body>
+
+<a href="javascript:history.back()" class="back-btn">← Back</a>
+
+<div class="page-wrapper">
+    <div class="card">
+        <h2>Create Pricing Plan</h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-error">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="text" name="name" placeholder="Plan Name" required>
+            <input type="number" name="price" placeholder="Price" required>
+            <input type="number" name="food_per_head" placeholder="Food per head" required>
+            <textarea name="description" placeholder="Short description"></textarea>
+
+            <label>
+                <input type="checkbox" name="is_popular">
+                Mark as Most Popular
+            </label>
+
+            <h4>Features</h4>
+
+            <div id="features">
+                <input type="text" name="features[]" placeholder="Feature">
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="addFeature()">
+                + Add Feature
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                Create Plan
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+function addFeature() {
+    const div = document.createElement("div");
+    div.innerHTML = `<input type="text" name="features[]" placeholder="Feature">`;
+    document.getElementById("features").appendChild(div);
+}
+</script>
+
+</body>
+</html>

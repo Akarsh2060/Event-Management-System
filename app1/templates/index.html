@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Zevents</title>
+<link rel="icon" href="/static/images/zevntt.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --purple:#a855f7;
+  --purple2:#7c3aed;
+  --dark:#07040f;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+a{text-decoration:none;color:inherit;}
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--dark);
+  color:#fff;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(168,85,247,.4);border-radius:10px;}
+
+/* ══════════════════════
+   SMOOTH CURSOR
+══════════════════════ */
+.cursor-outer{
+  position:fixed;
+  width:36px;height:36px;
+  border:1.5px solid rgba(168,85,247,.7);
+  border-radius:50%;
+  pointer-events:none;
+  z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:width .2s ease,height .2s ease,border-color .2s ease,background .2s ease;
+  will-change:transform;
+}
+
+.cursor-inner{
+  position:fixed;
+  width:6px;height:6px;
+  background:#fff;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:100000;
+  transform:translate(-50%,-50%);
+  transition:width .1s ease,height .1s ease,background .2s ease;
+  will-change:transform;
+}
+
+/* Hover state */
+body.cursor-hover .cursor-outer{
+  width:52px;height:52px;
+  border-color:var(--purple);
+  background:rgba(168,85,247,.08);
+}
+
+body.cursor-hover .cursor-inner{
+  width:4px;height:4px;
+  background:var(--purple);
+}
+
+/* Click state */
+body.cursor-click .cursor-outer{
+  width:22px;height:22px;
+  background:rgba(168,85,247,.2);
+}
+
+/* Canvas for splash trail */
+#cursor-canvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  z-index:99998;
+}
+
+/* ══════════════════════
+   NAVBAR
+══════════════════════ */
+nav{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:500;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:24px 64px;
+  transition:.4s;
+}
+
+nav.scrolled{
+  background:rgba(7,4,15,.88);
+  backdrop-filter:blur(22px);
+  border-bottom:1px solid rgba(168,85,247,.12);
+  padding:16px 64px;
+}
+
+.logo{
+  font-size:21px;font-weight:800;
+  background:linear-gradient(135deg,#fff 30%,var(--purple));
+  -webkit-background-clip:text;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:-.3px;
+}
+
+.nav-links{display:flex;gap:34px;}
+.nav-links a{
+  font-size:13.5px;color:rgba(255,255,255,.65);transition:.25s;
+}
+.nav-links a:hover{color:#fff;}
+
+.nav-actions{display:flex;gap:10px;align-items:center;}
+
+.btn{
+  padding:9px 22px;border-radius:30px;font-size:13px;font-weight:500;
+  cursor:none;transition:.3s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-ghost{
+  border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff;
+}
+.btn-ghost:hover{border-color:var(--purple);background:rgba(168,85,247,.1);}
+
+.btn-purple{
+  background:linear-gradient(135deg,var(--purple),var(--purple2));
+  border:none;color:#fff;
+  box-shadow:0 4px 22px rgba(168,85,247,.4);
+}
+.btn-purple:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(168,85,247,.6);}
+
+/* ══════════════════════
+   HERO
+══════════════════════ */
+/* Hero Video */
+.hero-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: 0;
+  transform: translateX(-50%) translateY(-50%);
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.hero{
+  position:relative;
+  height:100vh;min-height:650px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+/* Unicorn BG fills entire hero */
+#unicorn-bg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  z-index:0;
+}
+
+/* Subtle bottom fade so sections below feel connected */
+.hero-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(7,4,15,.08) 0%,
+    rgba(7,4,15,.0) 40%,
+    rgba(7,4,15,.7) 80%,
+    rgba(7,4,15,1) 100%
+  );
+  z-index:1;
+}
+
+.hero-content{
+  position:relative;z-index:2;
+  text-align:center;padding:0 24px;max-width:860px;
+}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:9px;
+  background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.28);
+  border-radius:30px;padding:7px 20px;
+  font-size:12px;color:rgba(255,255,255,.8);
+  margin-bottom:30px;
+  animation:fadeDown .8s ease both;
+}
+
+.hero-badge .dot{
+  width:6px;height:6px;background:var(--purple);
+  border-radius:50%;animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.6);}
+  50%{box-shadow:0 0 0 7px rgba(168,85,247,0);}
+}
+
+.hero h1{
+  font-size:clamp(42px,7vw,82px);
+  font-weight:800;line-height:1.06;
+  letter-spacing:-2.5px;
+  animation:fadeUp .85s ease .1s both;
+}
+
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--purple),#e879f9,#818cf8);
+  -webkit-background-clip:text;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+}
+
+.hero p{
+  font-size:clamp(14px,1.7vw,18px);
+  color:rgba(255,255,255,.5);
+  max-width:520px;margin:22px auto 42px;
+  line-height:1.85;font-weight:300;
+  animation:fadeUp .85s ease .2s both;
+}
+
+.hero-buttons{
+  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp .85s ease .3s both;
+}
+
+.btn-lg{padding:15px 36px;font-size:15px;border-radius:14px;}
+
+/* Scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:38px;left:50%;transform:translateX(-50%);
+  z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:rgba(255,255,255,.2);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  animation:fadeUp 1s ease 1.2s both;
+}
+
+.scroll-line{
+  width:1px;height:48px;
+  background:linear-gradient(to bottom,transparent,var(--purple));
+  animation:scrollLine 2s ease infinite;
+}
+
+@keyframes scrollLine{
+  0%{transform:scaleY(0);transform-origin:top;}
+  50%{transform:scaleY(1);transform-origin:top;}
+  51%{transform:scaleY(1);transform-origin:bottom;}
+  100%{transform:scaleY(0);transform-origin:bottom;}
+}
+
+/* ══════════════════════
+   STATS
+══════════════════════ */
+.stats-strip{
+  background:rgba(255,255,255,.022);
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:32px 60px;
+  display:flex;justify-content:center;gap:90px;flex-wrap:wrap;
+}
+
+.stat-item{text-align:center;}
+.stat-item h3{
+  font-size:32px;font-weight:800;
+  background:linear-gradient(135deg,#fff,var(--purple));
+  -webkit-background-clip:text;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+}
+.stat-item p{font-size:12px;color:rgba(255,255,255,.38);margin-top:4px;}
+
+/* ══════════════════════
+   TICKER
+══════════════════════ */
+.ticker-wrap{overflow:hidden;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.ticker{display:flex;gap:52px;white-space:nowrap;animation:ticker 24s linear infinite;}
+.ticker-item{
+  display:inline-flex;align-items:center;gap:11px;
+  font-size:13px;color:rgba(255,255,255,.3);flex-shrink:0;
+}
+.t-dot{width:4px;height:4px;border-radius:50%;background:var(--purple);flex-shrink:0;}
+
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ══════════════════════
+   FEATURES
+══════════════════════ */
+.section{padding:110px 64px;}
+
+.section-label{
+  font-size:11px;font-weight:600;letter-spacing:.16em;
+  color:var(--purple);text-transform:uppercase;margin-bottom:12px;
+}
+
+.section-title{
+  font-size:clamp(28px,4vw,46px);font-weight:700;
+  line-height:1.12;letter-spacing:-.6px;max-width:500px;margin-bottom:60px;
+}
+.section-title span{
+  background:linear-gradient(135deg,var(--purple),#e879f9);
+  -webkit-background-clip:text;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+}
+
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+
+.feature-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;padding:30px 26px;
+  transition:.4s cubic-bezier(.25,.8,.25,1);
+  position:relative;overflow:hidden;
+}
+
+.feature-card::before{
+  content:"";position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(168,85,247,.6),transparent);
+  opacity:0;transition:.4s;
+}
+
+.feature-card:hover{
+  border-color:rgba(168,85,247,.3);
+  background:rgba(168,85,247,.05);
+  transform:translateY(-6px);
+  box-shadow:0 24px 60px rgba(168,85,247,.1);
+}
+.feature-card:hover::before{opacity:1;}
+
+.f-icon{
+  width:50px;height:50px;border-radius:14px;
+  background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.18);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;position:relative;z-index:1;
+  transition:.3s;
+}
+.feature-card:hover .f-icon{
+  background:rgba(168,85,247,.18);
+  box-shadow:0 0 20px rgba(168,85,247,.25);
+}
+.f-icon svg{width:22px;height:22px;}
+
+.feature-card h4{font-size:15px;font-weight:600;margin-bottom:9px;position:relative;z-index:1;}
+.feature-card p{font-size:13px;color:rgba(255,255,255,.42);line-height:1.78;position:relative;z-index:1;}
+
+/* ══════════════════════
+   GALLERY
+ ══════════════════════ */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  height: 300px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.gallery-item:hover img {
+  transform: scale(1.1);
+}
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7,4,15,0.8), transparent 60%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 30px;
+  opacity: 0;
+  transition: 0.4s;
+}
+
+.gallery-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+.gallery-item h5 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.gallery-item span {
+  font-size: 14px;
+  color: var(--purple);
+  font-weight: 500;
+}
+
+/* ══════════════════════
+   TESTIMONIALS
+ ══════════════════════ */
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.testimonial-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 30px 24px;
+  backdrop-filter: blur(12px);
+  transition: 0.4s;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(168, 85, 247, 0.3);
+  background: rgba(168, 85, 247, 0.04);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+.test-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--purple);
+}
+
+.rating {
+  display: flex;
+  gap: 4px;
+  color: #fbbf24;
+}
+
+.test-quote {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.8;
+  font-style: italic;
+}
+
+.test-user {
+  margin-top: auto;
+}
+
+.test-user h6 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.test-user p {
+  font-size: 12px;
+  color: var(--purple);
+}
+
+/* ══════════════════════
+   CTA
+══════════════════════ */
+.cta-section{padding:100px 64px;text-align:center;}
+
+.cta-box{
+  max-width:700px;margin:0 auto;
+  background:linear-gradient(135deg,rgba(124,58,237,.13),rgba(168,85,247,.06));
+  border:1px solid rgba(168,85,247,.2);
+  border-radius:28px;padding:70px 44px;
+  position:relative;overflow:hidden;
+}
+.cta-box::before{
+  content:"";position:absolute;top:-120px;right:-120px;
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(168,85,247,.16),transparent 70%);
+}
+.cta-box::after{
+  content:"";position:absolute;bottom:-100px;left:-100px;
+  width:260px;height:260px;
+  background:radial-gradient(circle,rgba(124,58,237,.12),transparent 70%);
+}
+.cta-box h2{
+  font-size:clamp(26px,4vw,42px);font-weight:800;
+  letter-spacing:-.6px;margin-bottom:16px;position:relative;z-index:1;
+}
+.cta-box p{
+  color:rgba(255,255,255,.48);font-size:15px;margin-bottom:36px;
+  line-height:1.8;position:relative;z-index:1;
+}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+
+/* ══════════════════════
+   FOOTER
+══════════════════════ */
+footer{
+  border-top:1px solid rgba(255,255,255,.07);
+  padding:32px 64px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+}
+footer p{font-size:12px;color:rgba(255,255,255,.28);}
+.foot-links{display:flex;gap:24px;}
+.foot-links a{font-size:12px;color:rgba(255,255,255,.28);transition:.2s;}
+.foot-links a:hover{color:var(--purple);}
+
+/* ══════════════════════
+   ANIMATIONS
+══════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .75s ease,transform .75s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ══════════════════════
+   RESPONSIVE
+══════════════════════ */
+@media(max-width:960px){
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .stats-strip{gap:36px;padding:26px 20px;}
+}
+@media(max-width:768px){
+  nav,nav.scrolled{padding:16px 20px;}
+  .nav-links{display:none;}
+  .section,.cta-section{padding:64px 20px;}
+  footer{padding:24px 20px;flex-direction:column;text-align:center;}
+  .features-grid{grid-template-columns:1fr;}
+  .foot-links{justify-content:center;}
+  body{cursor:auto;}
+  .cursor-outer,.cursor-inner,#cursor-canvas{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ CURSOR ══ -->
+<canvas id="cursor-canvas"></canvas>
+<div class="cursor-outer" id="cursor-outer"></div>
+<div class="cursor-inner" id="cursor-inner"></div>
+
+<!-- ══ NAVBAR ══ -->
+<nav id="navbar">
+  <div class="logo">Zevents</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#cta">Plans</a>
+    <a href="/about/">About</a>
+    <a href="#">+91 9876543210</a>
+  </div>
+  <div class="nav-actions">
+    <a href="/login/" class="btn btn-ghost">Login</a>
+    <a href="/register/" class="btn btn-purple">Get Started</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <video class="hero-video" autoplay muted loop playsinline poster="/static/images/bgimage.jpg">
+    <source src="https://player.vimeo.com/external/494252666.sd.mp4?s=bc463690d50710669d65191c963289aeb4f9ba6c&profile_id=164&oauth2_token_id=57447761" type="video/mp4">
+  </video>
+  <div id="unicorn-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      India's Premier Event Management Platform
+    </div>
+    <h1>Craft Your<br>Perfect Event,<br><em>Effortlessly.</em></h1>
+    <p>From intimate gatherings to grand celebrations — choose a plan, customize every detail, and let Zevents make your moment unforgettable.</p>
+    <div class="hero-buttons">
+      <a href="/register/" class="btn btn-purple btn-lg">Start Planning Free →</a>
+      <a href="#features" class="btn btn-ghost btn-lg">Explore Features</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- ══ STATS ══ -->
+<div class="stats-strip reveal">
+  <div class="stat-item"><h3>500+</h3><p>Events Hosted</p></div>
+  <div class="stat-item"><h3>12K+</h3><p>Happy Guests</p></div>
+  <div class="stat-item"><h3>4.9★</h3><p>Average Rating</p></div>
+  <div class="stat-item"><h3>50+</h3><p>Cities Covered</p></div>
+</div>
+
+<!-- ══ TICKER ══ -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item"><span class="t-dot"></span>Wedding Receptions</span>
+    <span class="ticker-item"><span class="t-dot"></span>Corporate Events</span>
+    <span class="ticker-item"><span class="t-dot"></span>Birthday Parties</span>
+    <span class="ticker-item"><span class="t-dot"></span>Product Launches</span>
+    <span class="ticker-item"><span class="t-dot"></span>Cultural Festivals</span>
+    <span class="ticker-item"><span class="t-dot"></span>Graduation Parties</span>
+    <span class="ticker-item"><span class="t-dot"></span>Anniversary Dinners</span>
+    <span class="ticker-item"><span class="t-dot"></span>Engagement Ceremonies</span>
+    <span class="ticker-item"><span class="t-dot"></span>Wedding Receptions</span>
+    <span class="ticker-item"><span class="t-dot"></span>Corporate Events</span>
+    <span class="ticker-item"><span class="t-dot"></span>Birthday Parties</span>
+    <span class="ticker-item"><span class="t-dot"></span>Product Launches</span>
+    <span class="ticker-item"><span class="t-dot"></span>Cultural Festivals</span>
+    <span class="ticker-item"><span class="t-dot"></span>Graduation Parties</span>
+    <span class="ticker-item"><span class="t-dot"></span>Anniversary Dinners</span>
+    <span class="ticker-item"><span class="t-dot"></span>Engagement Ceremonies</span>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section class="section" id="features">
+  <div class="section-label">Why Zevents</div>
+  <div class="section-title">Everything you need to <span>plan flawlessly</span></div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="f-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+          <line x1="12" y1="2" x2="12" y2="22"/>
+          <line x1="2" y1="8.5" x2="22" y2="8.5"/>
+          <line x1="2" y1="15.5" x2="22" y2="15.5"/>
+        </svg>
+      </div>
+      <h4>Flexible Plans</h4>
+      <p>Gold, Diamond, and Platinum packages — each fully tailored to your vision and budget.</p>
+    </div>
+
+    <div class="feature-card reveal">
+      <div class="f-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      </div>
+      <h4>Instant Booking</h4>
+      <p>Book your event slot in minutes. No paperwork, no waiting — just confirm and we handle the rest.</p>
+    </div>
+
+    <div class="feature-card reveal">
+      <div class="f-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="18" x2="20" y2="18"/>
+          <circle cx="9" cy="6" r="2" fill="rgba(168,85,247,.2)"/>
+          <circle cx="15" cy="12" r="2" fill="rgba(168,85,247,.2)"/>
+          <circle cx="10" cy="18" r="2" fill="rgba(168,85,247,.2)"/>
+        </svg>
+      </div>
+      <h4>Custom Add-ons</h4>
+      <p>Personalize every detail — from floral arrangements to AV setups and specialty catering.</p>
+    </div>
+
+    <div class="feature-card reveal">
+      <div class="f-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z" fill="rgba(168,85,247,.1)"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+      </div>
+      <h4>Easy Payments</h4>
+      <p>Pay 25% advance to confirm, balance on the event date. Simple, transparent, and secure.</p>
+    </div>
+
+    <div class="feature-card reveal">
+      <div class="f-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <h4>Live Tracking</h4>
+      <p>Monitor your booking status, payment history, and event details from your dashboard.</p>
+    </div>
+
+    <div class="feature-card reveal">
+      <div class="f-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <circle cx="12" cy="17" r="0.5" fill="#a855f7" stroke="#a855f7"/>
+        </svg>
+      </div>
+      <h4>Refund Protection</h4>
+      <p>Plans change — we get it. Cancel and receive a full advance refund, hassle-free.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ GALLERY ══ -->
+<section class="section" style="padding-top:0;">
+  <div class="section-label">Moments in Motion</div>
+  <div class="section-title">Experience the <span>Zevents Magic</span></div>
+  
+  <div class="gallery-grid">
+    <div class="gallery-item reveal">
+      <img src="/static/images/indian_wedding.png" alt="Indian Wedding">
+      <div class="gallery-overlay">
+        <span>Celebrations</span>
+        <h5>Royal Indian Weddings</h5>
+      </div>
+    </div>
+    <div class="gallery-item reveal">
+      <img src="/static/images/indian_corporate.png" alt="Corporate Gala">
+      <div class="gallery-overlay">
+        <span>Professional</span>
+        <h5>Corporate Excellence</h5>
+      </div>
+    </div>
+    <div class="gallery-item reveal">
+      <img src="/static/images/gallery_111_39_1.jpg" alt="Grand Celebration">
+      <div class="gallery-overlay">
+        <span>Vibrant</span>
+        <h5>Grand Celebrations</h5>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section class="section">
+  <div class="section-label">Wall of Love</div>
+  <div class="section-title">Nourishing your <span>special moments</span></div>
+
+  <div class="testimonial-grid">
+    <div class="testimonial-card reveal">
+      <div class="rating">
+        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+      </div>
+      <p class="test-quote">"Zevents transformed our wedding into a fairy tale. The attention to detail in the marigold decor was breathtaking. They truly nourished every moment with care."</p>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <img src="/static/images/indian_wedding.png" class="test-img" alt="Wedding">
+        <div class="test-user">
+          <h6>Priya & Rahul</h6>
+          <p>Royal Wedding @ Jaipur</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card reveal">
+      <div class="rating">
+        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+      </div>
+      <p class="test-quote">"The corporate gala was handled with such professionalism. From the LED stage setup to the seamless guest management, Zevents exceeded all expectations."</p>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <img src="/static/images/indian_corporate.png" class="test-img" alt="Corporate">
+        <div class="test-user">
+          <h6>Aditya Sharma</h6>
+          <p>CEO, TechBharat Solutions</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card reveal">
+      <div class="rating">
+        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+      </div>
+      <p class="test-quote">"The grand celebration was handled with such finesse. The stage setup, lights, and music were synchronized perfectly. Zevents truly knows how to nourish a grand moment."</p>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <img src="/static/images/gallery_111_39_1.jpg" class="test-img" alt="Celebration">
+        <div class="test-user">
+          <h6>Rajesh Khanna</h6>
+          <p>Grand Cultural Gala</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta-section" id="cta">
+  <div class="cta-box reveal">
+    <h2>Ready to plan your<br>dream event?</h2>
+    <p>Join thousands of happy customers who trusted Zevents to make their special moments unforgettable.</p>
+    <div class="cta-btns">
+      <a href="/register/" class="btn btn-purple btn-lg">Create Free Account →</a>
+      <a href="/login/" class="btn btn-ghost btn-lg">Login</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="logo">Zevents</div>
+  <p>© 2026 Zevents. All rights reserved.</p>
+  <div class="foot-links">
+    <a href="/about/">About</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="tel:+912345678">Contact</a>
+  </div>
+</footer>
+
+<!-- Unicorn Studio -->
+<script src="https://cdn.unicorn.studio/v1.4.0/unicornStudio.umd.js"></script>
+
+<script>
+/* ══════════════════════════════════════
+   SMOOTH MAGNETIC CURSOR WITH SOFT TRAIL
+══════════════════════════════════════ */
+const outerCursor = document.getElementById('cursor-outer');
+const innerCursor = document.getElementById('cursor-inner');
+const canvas      = document.getElementById('cursor-canvas');
+const ctx         = canvas.getContext('2d');
+
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// Raw mouse position
+let mx = -200, my = -200;
+// Smoothed positions
+let ox = -200, oy = -200; // outer (laggy)
+let ix = -200, iy = -200; // inner (faster)
+
+// Easing factors — higher = faster catch-up
+const OUTER_EASE = 0.10;
+const INNER_EASE = 0.22;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX;
+  my = e.clientY;
+});
+
+// Hover detection
+document.querySelectorAll('a, button, .feature-card, .plan-card').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+// Click ripple
+document.addEventListener('mousedown', () => document.body.classList.add('cursor-click'));
+document.addEventListener('mouseup',   () => document.body.classList.remove('cursor-click'));
+
+/* Soft glow trail */
+const trail = [];
+const TRAIL_LEN = 28;
+const COLORS = [
+  [168, 85,  247],
+  [232, 121, 249],
+  [129, 140, 248],
+  [96,  165, 250],
+];
+
+for(let i = 0; i < TRAIL_LEN; i++){
+  trail.push({ x: -200, y: -200 });
+}
+
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+function animateCursor(){
+  // Smooth inner (fast)
+  ix = lerp(ix, mx, INNER_EASE);
+  iy = lerp(iy, my, INNER_EASE);
+
+  // Smooth outer (slow)
+  ox = lerp(ox, mx, OUTER_EASE);
+  oy = lerp(oy, my, OUTER_EASE);
+
+  // Move DOM cursors
+  innerCursor.style.left = ix + 'px';
+  innerCursor.style.top  = iy + 'px';
+  outerCursor.style.left = ox + 'px';
+  outerCursor.style.top  = oy + 'px';
+
+  // Shift trail
+  trail.unshift({ x: ix, y: iy });
+  trail.length = TRAIL_LEN;
+
+  // Draw trail
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for(let i = 1; i < trail.length; i++){
+    const t = 1 - i / trail.length;
+    const size = t * 9 + 1;
+    const alpha = t * 0.45;
+    const c = COLORS[i % COLORS.length];
+
+    const grad = ctx.createRadialGradient(
+      trail[i].x, trail[i].y, 0,
+      trail[i].x, trail[i].y, size * 2.5
+    );
+    grad.addColorStop(0,   `rgba(${c[0]},${c[1]},${c[2]},${alpha})`);
+    grad.addColorStop(0.5, `rgba(${c[0]},${c[1]},${c[2]},${alpha * 0.3})`);
+    grad.addColorStop(1,   `rgba(${c[0]},${c[1]},${c[2]},0)`);
+
+    ctx.beginPath();
+    ctx.arc(trail[i].x, trail[i].y, size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+/* ══════════════════════════════════════
+   UNICORN STUDIO BACKGROUND
+══════════════════════════════════════ */
+UnicornStudio.addScene({
+  elementId:  'unicorn-bg',
+  fps:        60,
+  scale:      1,
+  dpi:        1.5,
+  projectId:  'xXpcdL8sQJ5YPLV183w4',
+  lazyLoad:   false,
+  interactivity: { mouse: { disableMobile: false } }
+}).catch(() => {});
+
+/* ══════════════════════════════════════
+   NAVBAR SCROLL + REVEAL
+══════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if(e.isIntersecting){
+      setTimeout(() => e.target.classList.add('visible'), i * 110);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zevents Admin Dashboard</title>
+    <link rel="icon" href="/static/images/zevntt.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/static/asset/vendor/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+    <link href="/static/asset/vendor/fontawesome/css/solid.min.css" rel="stylesheet">
+    <link href="/static/asset/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --purple: #9b5cff;
+            --purple-soft: #b388ff;
+            --purple-dim: rgba(155,92,255,0.15);
+            --bg-dark: #0d0b14;
+            --bg-card: rgba(255,255,255,0.05);
+            --border: rgba(255,255,255,0.10);
+            --text: #ecebff;
+            --muted: #8b89a8;
+            --sidebar-w: 240px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0d0b14;
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: linear-gradient(180deg, #16112a 0%, #0d0b14 100%);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+            transition: transform .3s ease;
+        }
+
+        .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo img { width: 36px; }
+
+        .sidebar-logo span {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--purple), #6a3cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-section {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            color: var(--muted);
+            padding: 18px 20px 6px;
+            text-transform: uppercase;
+        }
+
+        .nav-link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 20px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            border-radius: 10px;
+            margin: 2px 10px;
+            transition: .25s;
+        }
+
+        .nav-link-item i { width: 18px; text-align: center; font-size: 14px; }
+
+        .nav-link-item:hover,
+        .nav-link-item.active {
+            background: var(--purple-dim);
+            color: var(--purple-soft);
+        }
+
+        .nav-link-item.active { font-weight: 500; }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #ff8a8a;
+            font-size: 13px;
+            text-decoration: none;
+            transition: .2s;
+        }
+
+        .sidebar-footer a:hover { background: rgba(255,77,77,0.12); }
+
+        /* ── OVERLAY (mobile) ── */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            z-index: 199;
+        }
+
+        .overlay.show { display: block; }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin .3s ease;
+        }
+
+        .main.expanded { margin-left: 0; }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: rgba(13,11,20,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            gap: 14px;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+
+        .toggle-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            transition: .2s;
+        }
+
+        .toggle-btn:hover { background: var(--purple-dim); color: var(--purple-soft); }
+
+        .topbar-title { font-size: 16px; font-weight: 600; }
+
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+        .topbar-badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 14px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex; align-items: center; gap: 7px;
+        }
+
+        .topbar-badge .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        /* ── CONTENT ── */
+        .content { padding: 24px; flex: 1; }
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: .3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            opacity: .12;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(155,92,255,.35);
+            box-shadow: 0 12px 40px rgba(155,92,255,.2);
+        }
+
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.purple { background: rgba(155,92,255,.18); color: var(--purple-soft); }
+        .stat-icon.green  { background: rgba(34,197,94,.15);  color: #4ade80; }
+        .stat-icon.blue   { background: rgba(59,130,246,.15); color: #60a5fa; }
+        .stat-icon.pink   { background: rgba(236,72,153,.15); color: #f472b6; }
+
+        .stat-card::before { background: currentColor; }
+
+        .stat-info p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .stat-info h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-info small {
+            font-size: 11px;
+            color: #4ade80;
+        }
+
+        /* ── CHARTS ROW ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .chart-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .chart-card-header h6 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .chart-card-header span {
+            font-size: 11px;
+            color: var(--muted);
+            background: var(--purple-dim);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        canvas { max-height: 220px !important; }
+
+        /* ── QUICK LINKS ── */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .quick-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: .25s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .quick-card i {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            background: var(--purple-dim);
+            color: var(--purple-soft);
+            flex-shrink: 0;
+        }
+
+        .quick-card:hover {
+            border-color: rgba(155,92,255,.4);
+            background: rgba(155,92,255,.08);
+            color: var(--purple-soft);
+            transform: translateY(-2px);
+        }
+
+        /* ── RECENT TABLE ── */
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-card-header h6 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .table-card-header a {
+            font-size: 12px;
+            color: var(--purple-soft);
+            text-decoration: none;
+        }
+
+        .dash-table { width: 100%; border-collapse: collapse; }
+
+        .dash-table th {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            padding: 10px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dash-table td {
+            padding: 13px 20px;
+            font-size: 13px;
+            color: var(--text);
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+
+        .dash-table tbody tr:last-child td { border-bottom: none; }
+
+        .dash-table tbody tr:hover td { background: var(--purple-dim); }
+
+        .status-pill {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-pill.approved { background: rgba(34,197,94,.15); color: #4ade80; }
+        .status-pill.pending  { background: rgba(234,179,8,.15);  color: #fbbf24; }
+        .status-pill.rejected { background: rgba(239,68,68,.15);  color: #f87171; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1100px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-grid  { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0 !important; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-grid  { grid-template-columns: repeat(2, 1fr); }
+            .topbar { padding: 12px 16px; }
+            .content { padding: 16px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .quick-grid  { grid-template-columns: 1fr; }
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(155,92,255,.35); border-radius: 10px; }
+    </style>
+</head>
+
+<body>
+
+<!-- Overlay (mobile) -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <img src="/static/images/zevntt.png" alt="Zevents">
+        <span>Zevents</span>
+    </div>
+
+    <div class="sidebar-section">Main</div>
+    <a href="/adminPage/" class="nav-link-item active"><i class="fas fa-home"></i> Dashboard</a>
+
+    <div class="sidebar-section">Management</div>
+    <a href="/viewUser/" class="nav-link-item"><i class="fas fa-users"></i> Users</a>
+    <a href="/viewRequest/" class="nav-link-item"><i class="fas fa-clipboard-list"></i> Requests</a>
+    <a href="/viewRefunds/" class="nav-link-item"><i class="fas fa-money-bill-wave"></i> Refunds</a>
+
+    <div class="sidebar-section">Plans</div>
+    <a href="/addCategory/" class="nav-link-item"><i class="fas fa-plus-circle"></i> Create Plan</a>
+    <a href="/viewCategory/" class="nav-link-item"><i class="fas fa-th-list"></i> View Plans</a>
+    <a href="/adminCustomizations/" class="nav-link-item"><i class="fas fa-sliders-h"></i> Add-ons</a>
+
+    <div class="sidebar-footer">
+        <a href="/logOut/"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="topbar-title">Dashboard</span>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-badge">
+                <span class="dot"></span> Admin Online
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- STAT CARDS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-info">
+                    <p>Total Bookings</p>
+                    <h3>{{ total_bookings|default:"—" }}</h3>
+                    <small>All time</small>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-rupee-sign"></i></div>
+                <div class="stat-info">
+                    <p>Revenue</p>
+                    <h3>₹{{ total_revenue|default:"—" }}</h3>
+                    <small>Paid bookings</small>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <p>Total Users</p>
+                    <h3>{{ total_users|default:"—" }}</h3>
+                    <small>Registered</small>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pink"><i class="fas fa-undo-alt"></i></div>
+                <div class="stat-info">
+                    <p>Refunds</p>
+                    <h3>{{ total_refunds|default:"—" }}</h3>
+                    <small>Processed</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK LINKS -->
+        <div class="quick-grid">
+            <a href="/viewUser/" class="quick-card"><i class="fas fa-user-friends"></i> Manage Users</a>
+            <a href="/viewRequest/" class="quick-card"><i class="fas fa-tasks"></i> View Requests</a>
+            <a href="/addCategory/" class="quick-card"><i class="fas fa-plus"></i> Create Plan</a>
+            <a href="/viewRefunds/" class="quick-card"><i class="fas fa-money-bill-wave"></i> View Refunds</a>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h6>Booking Overview</h6>
+                    <span>This Year</span>
+                </div>
+                <canvas id="trafficflow"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h6>Plan Distribution</h6>
+                    <span>Active Plans</span>
+                </div>
+                <canvas id="sales"></canvas>
+            </div>
+        </div>
+
+        <!-- RECENT REQUESTS TABLE -->
+        <div class="table-card">
+            <div class="table-card-header">
+                <h6>Recent Requests</h6>
+                <a href="/viewRequest/">View All →</a>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Event</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in recent_bookings %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ b.user.first_name|default:b.user.username }}</td>
+                            <td>{{ b.event_name }}</td>
+                            <td>{{ b.plan.name }}</td>
+                            <td>₹{{ b.total_amount }}</td>
+                            <td>
+                                <span class="status-pill
+                                    {% if b.status == 'Approved' %}approved
+                                    {% elif b.status == 'Rejected' %}rejected
+                                    {% else %}pending{% endif %}">
+                                    {{ b.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No requests yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- JS -->
+<script src="/static/asset/vendor/jquery/jquery.min.js"></script>
+<script src="/static/asset/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/asset/vendor/chartsjs/Chart.min.js"></script>
+
+<script>
+    // Sidebar toggle
+    function toggleSidebar() {
+        const sb = document.getElementById('sidebar');
+        const main = document.getElementById('main');
+        const overlay = document.getElementById('overlay');
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMobile) {
+            sb.classList.toggle('open');
+            overlay.classList.toggle('show');
+        } else {
+            sb.classList.toggle('collapsed');
+            main.classList.toggle('expanded');
+        }
+    }
+
+    // Charts
+    window.addEventListener('load', () => {
+        // Line chart
+        const ctx1 = document.getElementById('trafficflow');
+        if (ctx1) {
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                    datasets: [{
+                        label: 'Bookings',
+                        data: [4,7,5,9,12,8,14,11,16,10,13,18],
+                        borderColor: '#9b5cff',
+                        backgroundColor: 'rgba(155,92,255,0.12)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#9b5cff',
+                        pointRadius: 4,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#8b89a8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#8b89a8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        // Doughnut chart
+        const ctx2 = document.getElementById('sales');
+        if (ctx2) {
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gold', 'Silver', 'Diamond', 'Platinum'],
+                    datasets: [{
+                        data: [35, 28, 20, 17],
+                        backgroundColor: ['#9b5cff','#6a3cff','#b388ff','#4c1fcc'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#8b89a8', font: { size: 11 }, padding: 14 }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

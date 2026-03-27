@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin | Customizations</title>
+<link rel="icon" href="/static/images/zevntt.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --purple: #a855f7;
+  --purple-glow: rgba(168, 85, 247, 0.4);
+  --dark-bg: #07040f;
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --green: #22c55e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #1a0b2e, #07040f);
+  color: #fff;
+  padding: 40px;
+  overflow-x: hidden;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff, var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.home-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateX(-4px);
+}
+
+.add-btn {
+  background: linear-gradient(135deg, var(--green), #16a34a);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+}
+
+/* ===== TABLE ===== */
+.table-wrap {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  max-width: 1200px;
+  margin: 0 auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: rgba(168, 85, 247, 0.1);
+}
+
+th {
+  padding: 20px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+td {
+  padding: 18px 16px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--glass-border);
+  color: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  vertical-align: middle;
+}
+
+tbody tr {
+  transition: 0.2s;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+tbody tr.dragging {
+  opacity: 0.4;
+  background: var(--purple-glow);
+}
+
+/* ===== DRAG ICON ===== */
+.drag {
+  cursor: grab;
+  color: var(--purple);
+  font-size: 20px;
+  width: 40px;
+}
+
+/* ===== STATUS TOGGLE ===== */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 22px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  transition: 0.3s;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider:before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  left: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* ===== ACTIONS ===== */
+.btn {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.edit {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.edit:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  margin-left: 8px;
+}
+
+.delete:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-box {
+  background: #12091f;
+  background: linear-gradient(145deg, #12091f, #07040f);
+  padding: 32px;
+  width: 420px;
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 30px var(--purple-glow);
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-box h3 {
+  margin-bottom: 24px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.modal-box label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 500;
+}
+
+.modal-box input,
+.modal-box textarea,
+.modal-box select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  margin-bottom: 20px;
+  font-size: 14px;
+  transition: 0.2s;
+  outline: none;
+}
+
+.modal-box input:focus,
+.modal-box textarea:focus,
+.modal-box select:focus {
+  border-color: var(--purple);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px var(--purple-glow);
+}
+
+.modal-box textarea {
+  height: 100px;
+  resize: none;
+}
+
+/* FIX DROPDOWN STYLE */
+.modal-box select option {
+  background: #12091f;
+  color: #fff;
+  padding: 12px;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: -15px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+/* MODAL ACTIONS */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.modal-actions .save-btn {
+  background: var(--purple);
+  box-shadow: 0 4px 15px var(--purple-glow);
+}
+
+.modal-actions .save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--purple-glow);
+}
+
+.modal-actions .cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+}
+
+.modal-actions .cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* STATUS ROW IN MODAL */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.status-row span {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="/adminPage/" class="home-btn">⟵ Home</a>
+    <h2>Customization Add-ons</h2>
+  </div>
+  <button class="add-btn" type="button" onclick="openAdd()">+ Add Customization</button>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th></th>
+  <th>Name</th>
+  <th>Price</th>
+  <th>Plan Tier</th>
+  <th>Active</th>
+  <th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="sortable">
+{% for a in addons %}
+<tr draggable="true" data-id="{{ a.id }}">
+  <td class="drag">☰</td>
+  <td>{{ a.name }}</td>
+  <td>₹ {{ a.price }}</td>
+  <td style="color:#c39bff">{{ a.plan.name|default:"—" }}</td>
+  <td>
+    <label class="switch">
+      <input type="checkbox" {% if a.is_active %}checked{% endif %} disabled>
+      <span class="slider"></span>
+    </label>
+  </td>
+  <td>
+    <button class="btn edit"
+      onclick="openEdit('{{ a.id }}','{{ a.name|escapejs }}','{{ a.description|escapejs }}','{{ a.price }}','{{ a.is_active }}','{{ a.plan_id|default:'' }}')">
+      Edit
+    </button>
+    <button class="btn delete" onclick="confirmDelete('{{ a.id }}')">
+      Delete
+    </button>
+  </td>
+</tr>
+{% empty %}
+<tr><td colspan="6">No customizations added yet</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div id="formModal" class="modal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Add Customization</h3>
+
+    <form method="POST" id="customForm">
+      {% csrf_token %}
+
+      <label>Add-on Name</label>
+      <input type="text" name="name" id="c_name"
+        placeholder="Enter add-on name"
+        value="{{ request.POST.name|default:'' }}" required>
+
+      {% if error %}
+      <div class="error-text" id="errorBox">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <label>Description</label>
+      <textarea name="description" id="c_desc"
+        placeholder="Brief description of the service"></textarea>
+
+      <label>Price (₹)</label>
+      <input type="number" name="price" id="c_price"
+        placeholder="e.g. 5000"
+        value="{{ request.POST.price|default:'' }}" required>
+
+      <label>Plan Tier (Global if empty)</label>
+      <select name="plan" id="c_plan">
+        <option value="">— No specific plan (global) —</option>
+        {% for p in plans %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+
+      <div class="status-row">
+        <label class="switch">
+          <input type="checkbox" name="is_active" id="c_active"
+            {% if request.POST.is_active or not request.POST %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+        <span>Active & Visible</span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn save-btn" type="submit">Save Changes</button>
+        <button class="btn cancel-btn" type="button" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== DELETE MODAL ===== -->
+<div id="deleteModal" class="modal">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:50px; margin-bottom:15px;">⚠️</div>
+    <h3>Delete Add-on?</h3>
+    <p style="color:rgba(255,255,255,0.6); font-size:14px; margin-bottom:25px;">
+      Are you sure you want to delete this add-on? This action cannot be undone.
+    </p>
+    <div class="modal-actions">
+      <button class="btn delete" id="confirmDeleteBtn" style="flex:1; padding:12px;">Delete Forever</button>
+      <button class="btn cancel-btn" type="button" onclick="closeDeleteModal()" style="flex:1; padding:12px;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tbody = document.getElementById("sortable");
+let draggingRow = null;
+
+tbody.querySelectorAll("tr").forEach(row => {
+  row.addEventListener("dragstart", () => {
+    draggingRow = row;
+    row.classList.add("dragging");
+  });
+
+  row.addEventListener("dragend", () => {
+    row.classList.remove("dragging");
+    draggingRow = null;
+    saveOrder();
+  });
+});
+
+tbody.addEventListener("dragover", e => {
+  e.preventDefault();
+
+  const afterRow = getDragAfterElement(tbody, e.clientY);
+  if (!draggingRow) return;
+
+  if (afterRow == null) {
+    tbody.appendChild(draggingRow);
+  } else {
+    tbody.insertBefore(draggingRow, afterRow);
+  }
+});
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [
+    ...container.querySelectorAll("tr:not(.dragging)")
+  ];
+
+  return draggableElements.reduce(
+    (closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset, element: child };
+      }
+      return closest;
+    },
+    { offset: Number.NEGATIVE_INFINITY }
+  ).element;
+}
+
+function saveOrder() {
+  const order = [...tbody.children].map(row => ({
+    id: row.dataset.id
+  }));
+
+  fetch("/updateCustomizationOrder/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify(order)
+  });
+}
+function openAdd(){
+  customForm.action="/addCustomization/";
+  modalTitle.innerText="Add Customization";
+  c_name.value="";
+  c_desc.value="";
+  c_price.value="";
+  c_active.checked=false;
+  formModal.style.display="flex";
+}
+
+function openEdit(id,n,d,p,a,planId){
+  customForm.action="/updateCustomization/"+id+"/";
+  c_name.value=n;
+  c_desc.value=d;
+  c_price.value=p;
+  c_active.checked=(a==="True");
+  // Pre-select the plan dropdown
+  const planSel = document.getElementById('c_plan');
+  if(planSel) planSel.value = planId || '';
+  modalTitle.innerText="Edit Customization";
+  formModal.style.display="flex";
+}
+
+function closeModal(){
+  formModal.style.display="none";
+}
+
+function confirmDelete(id){
+  const modal = document.getElementById("deleteModal");
+  modal.style.display = "flex";
+  document.getElementById("confirmDeleteBtn").onclick = () => {
+    window.location.href = "/deleteCustomization/" + id + "/";
+  };
+}
+
+function closeDeleteModal(){
+  document.getElementById("deleteModal").style.display = "none";
+}
+
+// Close modals on overlay click
+window.onclick = function(event) {
+  if (event.target == formModal) closeModal();
+  if (event.target == document.getElementById("deleteModal")) closeDeleteModal();
+}
+
+/* ===== AUTO OPEN + AUTO HIDE ERROR ===== */
+{% if error %}
+window.addEventListener("load",()=>{
+  formModal.style.display="flex";
+  const e=document.getElementById("errorBox");
+  if(e){
+    setTimeout(()=>{e.style.display="none"},2000);
+  }
+});
+{% endif %}
+</script>
+
+</body>
+</html>

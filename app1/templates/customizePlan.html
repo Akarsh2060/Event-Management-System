@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Zevents | Customize Plan</title>
+<link rel="icon" href="/static/images/zevntt.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+:root{--purple:#a855f7;--purple2:#7c3aed;--dark:#07040f;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+a{text-decoration:none;color:inherit;}
+html{scroll-behavior:smooth;}
+body{
+  min-height:100vh;
+  background:radial-gradient(circle at top left,#2a1f44,#0d0b14);
+  color:#fff;overflow-x:hidden;cursor:none;padding:40px 20px 80px;
+}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(168,85,247,.4);border-radius:10px;}
+
+/* ══ CURSOR ══ */
+#cursor-canvas{position:fixed;inset:0;pointer-events:none;z-index:99999;width:100%;height:100%;}
+.cursor-outer{
+  position:fixed;width:36px;height:36px;
+  border:1.5px solid rgba(168,85,247,.7);border-radius:50%;
+  pointer-events:none;z-index:100000;transform:translate(-50%,-50%);
+  transition:width .2s,height .2s,border-color .2s,background .2s;will-change:transform;
+}
+.cursor-inner{
+  position:fixed;width:6px;height:6px;background:#fff;border-radius:50%;
+  pointer-events:none;z-index:100001;transform:translate(-50%,-50%);
+  transition:width .1s,height .1s,background .2s;will-change:transform;
+}
+body.c-hover .cursor-outer{width:52px;height:52px;border-color:var(--purple);background:rgba(168,85,247,.08);}
+body.c-hover .cursor-inner{width:4px;height:4px;background:var(--purple);}
+body.c-click .cursor-outer{width:22px;height:22px;background:rgba(168,85,247,.2);}
+
+/* ══ TOP ══ */
+.topbar{max-width:1200px;margin:0 auto 28px;}
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  color:rgba(255,255,255,.5);font-size:13px;transition:.2s;cursor:none;
+}
+.back-btn:hover{color:#fff;}
+.back-btn svg{width:16px;height:16px;}
+
+.page-heading{max-width:1200px;margin:0 auto 28px;}
+.page-title{font-size:clamp(24px,4vw,38px);font-weight:800;letter-spacing:-1px;margin-bottom:6px;}
+.page-title span{
+  background:linear-gradient(135deg,var(--purple),#e879f9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.page-subtitle{font-size:14px;color:rgba(255,255,255,.35);}
+
+/* ══ STEPS BAR ══ */
+.steps-wrap{max-width:1200px;margin:0 auto 32px;}
+.steps{display:flex;}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;}
+.step:not(:last-child)::after{
+  content:"";position:absolute;top:14px;left:55%;right:-45%;
+  height:2px;background:rgba(255,255,255,.08);z-index:0;transition:background .4s;
+}
+.step.done:not(:last-child)::after{background:var(--purple);}
+.step-circle{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;position:relative;z-index:1;transition:.3s;
+}
+.step.active .step-circle{background:var(--purple);border-color:var(--purple);box-shadow:0 0 16px rgba(168,85,247,.55);}
+.step.done .step-circle{background:rgba(168,85,247,.25);border-color:var(--purple);color:var(--purple);}
+.step-label{font-size:10px;color:rgba(255,255,255,.3);margin-top:7px;letter-spacing:.04em;text-align:center;transition:.3s;}
+.step.active .step-label{color:var(--purple);}
+.step.done .step-label{color:rgba(168,85,247,.6);}
+
+/* ══ LAYOUT ══ */
+.page-wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;}
+
+/* ══ FORM STEP ══ */
+.form-step{display:none;}
+.form-step.active{display:block;animation:fadeUp .4s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+/* ══ GLASS ══ */
+.glass{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:26px;margin-bottom:18px;
+}
+.glass-title{
+  font-size:14px;font-weight:600;color:rgba(255,255,255,.65);
+  margin-bottom:22px;display:flex;align-items:center;gap:9px;
+}
+.glass-title svg{width:17px;height:17px;stroke:var(--purple);flex-shrink:0;}
+
+/* ══ PLAN CARDS ══ */
+.plan-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px;}
+.plan-option{
+  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:18px 14px;cursor:none;transition:.25s;
+  position:relative;overflow:hidden;
+}
+.plan-option::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--purple2),var(--purple));
+  transform:scaleX(0);transition:.3s;transform-origin:left;
+}
+.plan-option:hover{border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.05);}
+.plan-option.selected{border-color:var(--purple);background:rgba(168,85,247,.1);}
+.plan-option.selected::before{transform:scaleX(1);}
+.plan-option input{display:none;}
+.plan-check{
+  position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;font-size:10px;transition:.25s;
+}
+.plan-option.selected .plan-check{background:var(--purple);border-color:var(--purple);color:#fff;}
+.plan-badge-pop{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:7px;}
+.plan-name-text{font-size:14px;font-weight:700;margin-bottom:5px;}
+.plan-price-text{
+  font-size:20px;font-weight:800;
+  background:linear-gradient(135deg,#fff,var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.plan-price-text sub{font-size:11px;font-weight:400;-webkit-text-fill-color:rgba(255,255,255,.3);}
+.plan-food{font-size:11px;color:rgba(255,255,255,.28);margin-top:4px;}
+
+/* ══ DIVIDER ══ */
+.sec-divider{
+  height:1px;background:rgba(255,255,255,.07);margin:22px 0;
+}
+
+/* ══ SECTION LABEL ══ */
+.sec-sub-label{
+  font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.35);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-sub-label svg{width:14px;height:14px;stroke:var(--purple);}
+
+/* ══ PEOPLE + ADDONS ROW ══ */
+.pa-row{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start;}
+
+/* ══ PEOPLE ══ */
+.people-label{
+  font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:rgba(255,255,255,.42);margin-bottom:8px;
+}
+.people-control{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;overflow:hidden;transition:.25s;
+}
+.people-control:focus-within{border-color:var(--purple);box-shadow:0 0 0 3px rgba(168,85,247,.14);}
+.people-btn{
+  width:44px;height:46px;background:rgba(168,85,247,.1);border:none;
+  color:#fff;font-size:20px;cursor:none;transition:.2s;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;
+}
+.people-btn:hover{background:rgba(168,85,247,.28);}
+.people-input{
+  flex:1;border:none;background:transparent;color:#fff;
+  font-size:16px;font-weight:700;text-align:center;outline:none;font-family:'Poppins',sans-serif;
+}
+.field-note{font-size:11px;color:rgba(255,255,255,.25);margin-top:6px;}
+.field-error{font-size:12px;color:#f87171;margin-top:5px;display:none;}
+
+/* ══ ADDONS ══ */
+.addons-label{
+  font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:rgba(255,255,255,.42);margin-bottom:10px;
+  display:flex;align-items:center;gap:7px;
+}
+.addons-label svg{width:13px;height:13px;stroke:var(--purple);}
+#addonNotice{font-size:11px;color:rgba(255,255,255,.25);font-weight:400;text-transform:none;letter-spacing:0;}
+
+.addon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.addon-card{
+  position:relative;padding:12px;border-radius:12px;
+  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);
+  cursor:none;transition:.25s;
+}
+.addon-card:hover{border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.05);transform:translateY(-2px);}
+.addon-card.active{border-color:var(--purple);background:rgba(168,85,247,.12);}
+.addon-card input{display:none;}
+.addon-tick{
+  position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:5px;
+  border:1.5px solid rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;font-size:10px;transition:.25s;
+}
+.addon-card.active .addon-tick{background:var(--purple);border-color:var(--purple);color:#fff;}
+.addon-name{font-size:12px;font-weight:600;margin-bottom:2px;padding-right:22px;}
+.addon-desc-text{font-size:11px;color:rgba(255,255,255,.3);line-height:1.5;margin-bottom:6px;}
+.addon-price-tag{
+  display:inline-block;font-size:11px;font-weight:600;
+  color:var(--purple);background:rgba(168,85,247,.12);border-radius:5px;padding:2px 7px;
+}
+.no-addons{font-size:13px;color:rgba(255,255,255,.28);text-align:center;padding:20px;grid-column:1/-1;}
+
+/* ══ FIELDS ══ */
+.field{margin-bottom:18px;}
+.field label{
+  display:block;font-size:11px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:rgba(255,255,255,.42);margin-bottom:8px;
+}
+.field input,.field select{
+  width:100%;padding:12px 14px;background:rgba(255,255,255,.05) !important;
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff !important;
+  font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:.25s;-webkit-appearance:none;
+  appearance:none;backdrop-filter:blur(8px);
+}
+.field input:focus,.field select:focus{
+  border-color:var(--purple);background:rgba(168,85,247,.1) !important;
+  box-shadow:0 0 15px rgba(168,85,247,.2);
+}
+.field input::placeholder{color:rgba(255,255,255,.25);}
+/* Fix Chrome Autofill */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus,
+.field input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1a1029 inset !important;
+  -webkit-text-fill-color: #fff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+.field select option{background:#12091f;color:#fff;}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* ══ CONFIRM ROWS ══ */
+.confirm-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);
+  color:rgba(255,255,255,.42);
+}
+.confirm-row:last-child{border-bottom:none;}
+.confirm-row span:last-child{font-weight:600;color:#ecebff;text-align:right;max-width:60%;}
+
+/* ══ INFO BOX ══ */
+.info-box{
+  background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);
+  border-radius:14px;padding:16px 18px;font-size:12.5px;
+  color:rgba(255,255,255,.42);line-height:1.85;
+}
+.info-box strong{color:rgba(255,255,255,.68);}
+
+/* ══ STEP NAV ══ */
+.step-nav{display:flex;gap:12px;margin-top:6px;align-items:center;}
+
+.btn-next{
+  flex:1;position:relative;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--purple),var(--purple2));
+  color:#fff;font-size:14px;font-weight:600;font-family:'Poppins',sans-serif;
+  cursor:none;overflow:hidden;
+  box-shadow:0 8px 25px rgba(168,85,247,0.3);
+  transition:all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  will-change:transform, box-shadow;
+}
+
+.btn-next::before{
+  content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+  transition:none;
+}
+
+.btn-next:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 15px 40px rgba(168,85,247,0.5);
+}
+
+.btn-next:hover::before{
+  left:100%;
+  transition:left 0.7s ease;
+}
+
+.btn-next:active{
+  transform:translateY(-1px) scale(0.98);
+  box-shadow:0 5px 15px rgba(168,85,247,0.4);
+  transition:all 0.1s ease;
+}
+
+.btn-next .ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,0.3);
+  transform:scale(0);
+  animation:rippleAnim 0.6s ease-out forwards;
+  pointer-events:none;
+}
+
+.btn-prev{
+  padding:14px 22px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.1);
+  background:transparent;
+  color:rgba(255,255,255,.52);
+  font-size:14px;font-family:'Poppins',sans-serif;
+  cursor:none;white-space:nowrap;
+  /* smooth position & style transitions */
+  transition:
+    transform .35s cubic-bezier(.34,1.56,.64,1),
+    border-color .25s ease,
+    color .25s ease,
+    opacity .3s ease,
+    max-width .4s cubic-bezier(.4,0,.2,1),
+    padding .4s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+  will-change:transform,max-width;
+}
+
+.btn-prev:hover{
+  border-color:rgba(168,85,247,.4);
+  color:#fff;
+  transform:translateX(-3px);
+}
+
+.btn-prev:active{
+  transform:translateX(-1px) scale(0.97);
+  transition:transform .1s ease;
+}
+
+/* hide back btn on step 1 smoothly */
+.btn-prev.hidden{
+  max-width:0;
+  padding-left:0;
+  padding-right:0;
+  opacity:0;
+  border-color:transparent;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.btn-prev.visible{
+  max-width:160px;
+  opacity:1;
+}
+
+/* ══ NAV PEOPLE ══ */
+.nav-people-wrap{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);
+  padding:6px 14px;border-radius:16px;margin-right:8px;
+}
+.nav-people-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;}
+
+.people-control{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;overflow:hidden;transition:.25s;
+}
+.people-btn{
+  width:36px;height:36px;background:rgba(168,85,247,.1);border:none;
+  color:#fff;font-size:16px;cursor:none;transition:.2s;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.people-btn:hover{background:rgba(168,85,247,.28);}
+.people-input{
+  width:45px;border:none;background:transparent;color:#fff;
+  font-size:14px;font-weight:700;text-align:center;outline:none;
+}
+.field-error{position:absolute;bottom:100%;right:0;background:#f87171;color:#fff;padding:4px 10px;border-radius:6px;font-size:10px;margin-bottom:8px;display:none;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{position:sticky;top:24px;}
+.summary-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:24px;margin-bottom:14px;
+}
+.summary-label{
+  font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.35);margin-bottom:20px;
+}
+.s-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);
+  color:rgba(255,255,255,.42);
+}
+.s-row:last-of-type{border-bottom:none;}
+.s-row span:last-child{font-weight:600;color:#ecebff;}
+.s-divider{height:1px;background:rgba(168,85,247,.18);margin:10px 0;}
+.s-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:4px;}
+.s-total span:first-child{font-size:14px;font-weight:700;color:#fff;}
+.s-total span:last-child{font-size:24px;font-weight:800;color:var(--purple);}
+.addon-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.addon-tag{
+  font-size:10px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.2);
+  border-radius:6px;padding:2px 8px;color:rgba(255,255,255,.45);
+}
+.advance-pill{
+  background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.16);
+  border-radius:12px;padding:14px;font-size:12px;
+  color:rgba(255,255,255,.4);line-height:1.75;margin-bottom:14px;
+}
+.advance-pill strong{color:#4ade80;}
+
+/* ══ FLATPICKR ══ */
+.flatpickr-calendar{
+  background:#12091f;border:1px solid var(--purple);
+  box-shadow:0 20px 50px rgba(168,85,247,.4);border-radius:16px;font-family:'Poppins',sans-serif;
+}
+.flatpickr-day{color:#fff;border-radius:8px;}
+.flatpickr-day:hover{background:rgba(168,85,247,.3);border-color:transparent;}
+.flatpickr-day.selected{background:var(--purple);border-color:var(--purple);}
+.flatpickr-day.disabled{opacity:.2;}
+.flatpickr-weekday{color:#c4b5fd!important;}
+.flatpickr-months .flatpickr-month{color:#c4b5fd;}
+.flatpickr-current-month .flatpickr-monthDropdown-months{color:#c4b5fd!important;background:#12091f;}
+.flatpickr-current-month input.cur-year{color:#c4b5fd!important;}
+.flatpickr-prev-month svg,.flatpickr-next-month svg{fill:#c4b5fd!important;}
+
+/* ══ SUCCESS ══ */
+.success-overlay{
+  position:fixed;inset:0;background:rgba(7,4,15,.95);
+  backdrop-filter:blur(14px);display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  z-index:99998;gap:18px;
+}
+.success-overlay.show{display:flex;animation:fadeUp .4s ease;}
+.tick-wrap{
+  width:110px;height:110px;border-radius:50%;
+  background:rgba(34,197,94,.08);border:2px solid rgba(34,197,94,.2);
+  display:flex;align-items:center;justify-content:center;
+}
+.tick-svg{width:58px;height:58px;}
+.tick-circle{
+  fill:none;stroke:#22c55e;stroke-width:3;stroke-dasharray:283;stroke-dashoffset:283;
+  transform-origin:center;transform:rotate(-90deg);
+  transition:stroke-dashoffset .6s cubic-bezier(.65,0,.35,1);
+}
+.tick-check{
+  fill:none;stroke:#22c55e;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:60;stroke-dashoffset:60;transition:stroke-dashoffset .4s ease .55s;
+}
+.success-overlay.show .tick-circle{stroke-dashoffset:0;}
+.success-overlay.show .tick-check{stroke-dashoffset:0;}
+.success-title{font-size:24px;font-weight:800;color:#ecebff;}
+.success-sub{font-size:13px;color:rgba(255,255,255,.38);text-align:center;max-width:280px;line-height:1.7;}
+.redirect-txt{font-size:12px;color:rgba(255,255,255,.22);}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1024px){
+  .page-wrap{grid-template-columns:1fr;}
+  .sidebar{position:static;}
+  .pa-row{grid-template-columns:180px 1fr;}
+}
+@media(max-width:700px){
+  .pa-row{grid-template-columns:1fr;}
+  .row-2{grid-template-columns:1fr;}
+  .plan-cards{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  body{padding:20px 12px 60px;cursor:auto;}
+  .cursor-outer,.cursor-inner,#cursor-canvas{display:none;}
+  .plan-cards{grid-template-columns:1fr;}
+  .addon-grid{grid-template-columns:1fr;}
+}
+/* ══ ADDON ANIMATION ══ */
+.addon-card{
+  /* existing styles stay, add these: */
+  opacity:0;
+  transform:translateY(12px) scale(0.97);
+  transition:
+    opacity .35s cubic-bezier(.4,0,.2,1),
+    transform .35s cubic-bezier(.4,0,.2,1),
+    border-color .25s,
+    background .25s;
+  pointer-events:none;
+}
+
+.addon-card.visible{
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+
+.addon-card[style*="display: none"]{
+  opacity:0;
+  transform:translateY(12px) scale(0.97);
+}
+/* ══ PLUS BUTTON PULSE ══ */
+.plus-btn{
+  background:linear-gradient(135deg,var(--purple),var(--purple2)) !important;
+  position:relative;overflow:hidden;
+}
+.plus-btn::after{
+  content:"";position:absolute;inset:0;
+  background:rgba(255,255,255,.25);
+  border-radius:50%;
+  transform:scale(0);opacity:0;
+  transition:transform .4s ease,opacity .4s ease;
+}
+.plus-btn:active::after{
+  transform:scale(2.5);opacity:0;
+  transition:transform .0s,opacity .0s;
+}
+
+/* ══ PLAN FEATURES ══ */
+.pa-row{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;}
+.features-col{
+  background:rgba(255,255,255,.02);border-radius:16px;padding:18px;
+  border:1px solid rgba(255,255,255,.05);
+}
+.features-list{
+  display:flex;flex-direction:column;gap:10px;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.features-list.fade-out{opacity:0;transform:translateX(-12px);}
+.feature-item-row{
+  display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.6);
+}
+.feature-item-row svg{width:14px;height:14px;color:var(--purple);flex-shrink:0;}
+
+/* ══ NAV PEOPLE ══ */
+.nav-people-wrap{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);
+  padding:6px 14px;border-radius:16px;margin-right:8px;position:relative;
+}
+.nav-people-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;}
+.people-control{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;overflow:hidden;transition:.25s;
+}
+.people-btn{
+  width:36px;height:36px;background:rgba(168,85,247,.1);border:none;
+  color:#fff;font-size:16px;cursor:none;transition:.2s;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.people-btn:hover{background:rgba(168,85,247,.28);}
+.people-input{
+  width:45px;border:none;background:transparent;color:#fff;
+  font-size:14px;font-weight:700;text-align:center;outline:none;
+}
+.pa-row.no-addons {
+  grid-template-columns: 1fr;
+}
+.pa-row.no-addons .addons-col {
+  display: none;
+}
+.pa-row.no-addons .features-list {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px 30px;
+}
+.pa-row.no-addons .features-col {
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.field-error{position:absolute;bottom:100%;right:0;background:#f87171;color:#fff;padding:4px 10px;border-radius:6px;font-size:10px;margin-bottom:8px;display:none;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ══ CURSOR ══ -->
+<canvas id="cursor-canvas"></canvas>
+<div class="cursor-outer" id="cursor-outer"></div>
+<div class="cursor-inner" id="cursor-inner"></div>
+
+<!-- ══ SUCCESS ══ -->
+<div class="success-overlay" id="successOverlay">
+  <div class="tick-wrap">
+    <svg class="tick-svg" viewBox="0 0 100 100">
+      <circle class="tick-circle" cx="50" cy="50" r="45"/>
+      <polyline class="tick-check" points="28,52 44,68 72,36"/>
+    </svg>
+  </div>
+  <div class="success-title">Request Submitted! 🎉</div>
+  <div class="success-sub">Your event has been sent for review. We'll approve it within 24 hours.</div>
+  <div class="redirect-txt">Redirecting in <span id="countdown">3</span>s…</div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<div class="topbar">
+  <a href="/mainPage/" class="back-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Back to Plans
+  </a>
+</div>
+
+<div class="page-heading">
+  <div class="page-title">Customize Your <span>Event Plan</span></div>
+  <div class="page-subtitle">Pick a plan, choose add-ons, then fill in your event details.</div>
+</div>
+
+<!-- ══ STEPS ══ -->
+<div class="steps-wrap">
+  <div class="steps">
+    <div class="step active" id="si-0"><div class="step-circle">1</div><div class="step-label">Plan & Add-ons</div></div>
+    <div class="step" id="si-1"><div class="step-circle">2</div><div class="step-label">Event Details</div></div>
+    <div class="step" id="si-2"><div class="step-circle">3</div><div class="step-label">Date & Time</div></div>
+    <div class="step" id="si-3"><div class="step-circle">4</div><div class="step-label">Review</div></div>
+  </div>
+</div>
+
+<!-- ══ FORM ══ -->
+<form method="POST" id="mainForm" onsubmit="handleSubmit(event)">
+{% csrf_token %}
+<input type="hidden" name="plan" id="hiddenPlan">
+<input type="hidden" name="time" id="finalTime">
+
+<div class="page-wrap">
+<div>
+
+  <!-- ████ STEP 1: PLAN + PEOPLE + ADDONS ████ -->
+  <div class="form-step active" id="step-0">
+    <div class="glass">
+      <div class="glass-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+          <line x1="12" y1="2" x2="12" y2="22"/>
+          <line x1="2" y1="8.5" x2="22" y2="8.5"/>
+          <line x1="2" y1="15.5" x2="22" y2="15.5"/>
+        </svg>
+        Choose Your Plan
+      </div>
+
+      <!-- PLAN CARDS -->
+      <div class="plan-cards" id="planCards">
+        {% for p in plans %}
+        <div class="plan-option"
+          data-id="{{ p.id }}" data-price="{{ p.price }}"
+          data-food="{{ p.food_per_head|default:0 }}" data-name="{{ p.name }}"
+          onclick="selectPlan(this)">
+          <input type="radio" name="_plan_visual" value="{{ p.id }}">
+          <div class="plan-check">✓</div>
+          {% if p.is_popular %}<div class="plan-badge-pop">⭐ Popular</div>{% endif %}
+          <div class="plan-name-text">{{ p.name }}</div>
+          <div class="plan-price-text">₹{{ p.price }}<sub>/event</sub></div>
+          <div class="plan-food">+₹{{ p.food_per_head|default:0 }}/person</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="sec-divider"></div>
+
+      <!-- PEOPLE + ADDONS -->
+      <div class="pa-row">
+        <!-- PLAN FEATURES -->
+        <div class="features-col">
+          <div class="addons-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Plan Includes
+          </div>
+          <div id="planFeatures" class="features-list">
+            <!-- Dynamic Features populate here -->
+          </div>
+        </div>
+
+        <!-- ADDONS -->
+        <div class="addons-col">
+          <div class="addons-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Optional Add-ons
+            <span id="addonNotice"></span>
+          </div>
+          <div class="addon-grid" id="addonGrid">
+            {% for a in addons %}
+            <label class="addon-card" data-addon-id="{{ a.id }}" data-plan-id="{{ a.plan_id|default:'' }}">
+              <input type="checkbox" name="addons" value="{{ a.id }}" data-price="{{ a.price }}" onchange="toggleAddon(this)">
+              <div class="addon-tick">✓</div>
+              <div class="addon-name">{{ a.name }}</div>
+              <div class="addon-desc-text">{{ a.description }}</div>
+              <div class="addon-price-tag">₹{{ a.price }}</div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <div class="nav-people-wrap">
+        <div class="nav-people-label">Guests</div>
+        <div class="people-control">
+          <button type="button" class="people-btn" onclick="changePeople(-10)">−</button>
+          <input class="people-input" type="number" name="people_count" id="people" 
+            value="50" min="50" oninput="validatePeople();updateSummary()">
+          <button type="button" class="people-btn plus-btn" onclick="changePeople(10)">+</button>
+        </div>
+        <div class="field-error" id="peopleError">Min 50 guests</div>
+      </div>
+      <button type="button" class="btn-next" onclick="validateStep1()">Continue → Event Details</button>
+    </div>
+  </div>
+
+  <!-- ████ STEP 2: EVENT DETAILS ████ -->
+  <div class="form-step" id="step-1">
+    <div class="glass">
+      <div class="glass-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Event Details
+      </div>
+
+      <div class="field">
+        <label>Event Name</label>
+        <input type="text" name="event_name" id="eventName" placeholder="e.g. Sarah's Wedding Reception">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Hotel / Venue</label>
+          <input type="text" name="hotel_name" id="hotelName" placeholder="e.g. Grand Palace Hotel">
+        </div>
+        <div class="field">
+          <label>City / Location</label>
+          <input type="text" name="location" id="location" placeholder="e.g. Chennai">
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button type="button" class="btn-prev" onclick="goStep(0)">← Back</button>
+      <button type="button" class="btn-next" onclick="validateStep2()">Continue → Date & Time</button>
+    </div>
+  </div>
+
+  <!-- ████ STEP 3: DATE & TIME ████ -->
+  <div class="form-step" id="step-2">
+    <div class="glass">
+      <div class="glass-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Date & Time
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Event Date</label>
+          <input type="text" id="eventDate" name="date"
+            placeholder="Click to pick a date" readonly style="cursor:pointer;">
+          <div class="field-note">Must be 2–5 months from today</div>
+        </div>
+        <div class="field">
+          <label>Time</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <select id="hour" onchange="syncTime()">
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>11</option><option>12</option>
+            </select>
+            <select id="ampm" onchange="syncTime()">
+              <option>AM</option><option>PM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button type="button" class="btn-prev" onclick="goStep(1)">← Back</button>
+      <button type="button" class="btn-next" onclick="validateStep3()">Review & Confirm →</button>
+    </div>
+  </div>
+
+  <!-- ████ STEP 4: REVIEW ████ -->
+  <div class="form-step" id="step-3">
+    <div class="glass">
+      <div class="glass-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        Review Your Event
+      </div>
+      <div id="confirmDetails"></div>
+    </div>
+
+    <div class="info-box" style="margin-bottom:18px;">
+      ✅ <strong>25% advance</strong> required after approval.<br>
+      ✅ Reviewed within <strong>24 hours</strong>.<br>
+      ✅ <strong>Full refund</strong> on advance if cancelled.
+    </div>
+
+    <div class="step-nav">
+      <button type="button" class="btn-prev" onclick="goStep(2)">← Back</button>
+      <button type="submit" class="btn-next">🎉 Submit Request</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ████ SIDEBAR ████ -->
+<div class="sidebar">
+  <div class="summary-card">
+    <div class="summary-label">Live Summary</div>
+    <div class="s-row"><span>Plan</span><span id="s-plan">—</span></div>
+    <div class="s-row"><span>Base Price</span><span id="s-base">₹0</span></div>
+    <div class="s-row"><span>Guests</span><span id="s-guests">—</span></div>
+    <div class="s-row"><span>Food Cost</span><span id="s-food">₹0</span></div>
+    <div class="s-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div style="display:flex;justify-content:space-between;width:100%;">
+        <span>Add-ons</span><span id="s-addons">₹0</span>
+      </div>
+      <div class="addon-tags" id="addon-tags"></div>
+    </div>
+    <div class="s-divider"></div>
+    <div class="s-total">
+      <span>Total</span>
+      <span id="s-total">₹0</span>
+    </div>
+  </div>
+
+  <div class="advance-pill">
+    Advance after approval:<br>
+    <strong>25% = ₹<span id="s-advance">0</span></strong><br>
+    <span style="font-size:11px;">Balance due on event day.</span>
+  </div>
+
+  <div class="info-box">
+    <strong>Rules</strong><br>
+    • Date: <strong>2–5 months</strong> ahead<br>
+    • Min <strong>50 guests</strong><br>
+    • Full refund if cancelled<br>
+    • Approved within <strong>24 hrs</strong>
+  </div>
+</div>
+
+</div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+/* ══ CURSOR ══ */
+const outerCursor=document.getElementById('cursor-outer');
+const innerCursor=document.getElementById('cursor-inner');
+const cvs=document.getElementById('cursor-canvas');
+const ctx=cvs.getContext('2d');
+cvs.width=window.innerWidth;cvs.height=window.innerHeight;
+window.addEventListener('resize',()=>{cvs.width=window.innerWidth;cvs.height=window.innerHeight;});
+let mx=-200,my=-200,ox=-200,oy=-200,ix=-200,iy=-200;
+const OE=0.10,IE=0.22;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+document.querySelectorAll('a,button,label,.plan-option,.addon-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('c-hover'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('c-hover'));
+});
+document.addEventListener('mousedown',()=>document.body.classList.add('c-click'));
+document.addEventListener('mouseup',()=>document.body.classList.remove('c-click'));
+const trail=[];const TLEN=28;
+const COLS=[[168,85,247],[232,121,249],[129,140,248],[96,165,250]];
+for(let i=0;i<TLEN;i++)trail.push({x:-200,y:-200});
+function lerp(a,b,t){return a+(b-a)*t;}
+function animateCursor(){
+  ix=lerp(ix,mx,IE);iy=lerp(iy,my,IE);
+  ox=lerp(ox,mx,OE);oy=lerp(oy,my,OE);
+  innerCursor.style.left=ix+'px';innerCursor.style.top=iy+'px';
+  outerCursor.style.left=ox+'px';outerCursor.style.top=oy+'px';
+  trail.unshift({x:ix,y:iy});trail.length=TLEN;
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  for(let i=1;i<trail.length;i++){
+    const t=1-i/trail.length;const sz=t*9+1;const al=t*0.4;
+    const c=COLS[i%COLS.length];
+    const g=ctx.createRadialGradient(trail[i].x,trail[i].y,0,trail[i].x,trail[i].y,sz*2.5);
+    g.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${al})`);
+    g.addColorStop(0.5,`rgba(${c[0]},${c[1]},${c[2]},${al*.3})`);
+    g.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+    ctx.beginPath();ctx.arc(trail[i].x,trail[i].y,sz*2.5,0,Math.PI*2);
+    ctx.fillStyle=g;ctx.fill();
+  }
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+/* ══ STATE ══ */
+let currentStep=0;
+let selectedPlanEl=null;
+let addonTotal=0;
+const PLAN_ADDON_MAP={{ plan_addon_map_json|safe }};
+const PLAN_FEATURES_MAP={{ plan_features_map_json|safe }};
+const ALL_PLAN_IDS=Array.from(document.querySelectorAll('.plan-option')).map(o=>parseInt(o.dataset.id));
+
+/* ══ INIT ══ */
+window.addEventListener('load',()=>{
+  const first=document.querySelector('.plan-option');
+  if(first) selectPlan(first);
+  syncTime();
+  updatePlan();
+});
+
+/* ══ STEP NAV ══ */
+function goStep(n){
+  document.getElementById('step-'+currentStep).classList.remove('active');
+  document.getElementById('si-'+currentStep).classList.remove('active');
+  if(n>currentStep) document.getElementById('si-'+currentStep).classList.add('done');
+  currentStep=n;
+  for(let i=0;i<n;i++) document.getElementById('si-'+i).classList.add('done');
+  for(let i=n+1;i<4;i++) document.getElementById('si-'+i).classList.remove('active','done');
+  document.getElementById('si-'+n).classList.remove('done');
+  document.getElementById('si-'+n).classList.add('active');
+  document.getElementById('step-'+n).classList.add('active');
+  if(n===3) buildConfirm();
+
+  // smooth back button show/hide
+  document.querySelectorAll('.btn-prev').forEach(btn=>{
+    if(n===0){
+      btn.classList.add('hidden');
+      btn.classList.remove('visible');
+    } else {
+      btn.classList.remove('hidden');
+      btn.classList.add('visible');
+    }
+  });
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ══ VALIDATIONS ══ */
+function validateStep1(){
+  const pp=parseInt(document.getElementById('people').value)||0;
+  if(pp<50){
+    document.getElementById('peopleError').style.display='block';
+    setTimeout(() => { document.getElementById('peopleError').style.display='none'; }, 3000);
+    return;
+  }
+  goStep(1);
+}
+
+function validateStep2(){
+  const en=document.getElementById('eventName').value.trim();
+  const hn=document.getElementById('hotelName').value.trim();
+  const lo=document.getElementById('location').value.trim();
+  if(!en||!hn||!lo){
+    alert('Please fill in all event details.');
+    return;
+  }
+  goStep(2);
+}
+
+function validateStep3(){
+  if(!document.getElementById('eventDate').value){
+    alert('Please select an event date.');
+    return;
+  }
+  goStep(3);
+}
+
+/* ══ PLAN ══ */
+function selectPlan(el){
+  document.querySelectorAll('.plan-option').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPlanEl=el;
+  document.getElementById('hiddenPlan').value=el.dataset.id;
+  updatePlan();
+  updateSummary();
+}
+
+function updatePlan(){
+  if(!selectedPlanEl) return;
+  const selectedId=parseInt(selectedPlanEl.dataset.id);
+
+  // 1. Update Features with Animation
+  const fList = document.getElementById('planFeatures');
+  fList.classList.add('fade-out');
+  
+  setTimeout(() => {
+    const features = PLAN_FEATURES_MAP[selectedId] || [];
+    fList.innerHTML = features.map(f => `
+      <div class="feature-item-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        ${f}
+      </div>
+    `).join('');
+    fList.classList.remove('fade-out');
+  }, 300);
+
+  // 2. Update Addons Visibility
+  const selectedIndex=ALL_PLAN_IDS.indexOf(selectedId);
+  const activePlanIds=ALL_PLAN_IDS.slice(selectedIndex);
+  const visibleAddonIds=new Set();
+  activePlanIds.forEach(pid=>(PLAN_ADDON_MAP[pid]||[]).forEach(aid=>visibleAddonIds.add(aid)));
+  const finalVisible=visibleAddonIds;
+
+  let anyVisible=false;
+  let delay=0;
+
+  document.querySelectorAll('#addonGrid .addon-card').forEach(card=>{
+    const addonId=parseInt(card.dataset.addonId);
+    const planId=card.dataset.planId;
+    const isGlobal=planId===''||planId==='None';
+    const show=isGlobal||finalVisible.has(addonId);
+
+    if(!show){
+      // ease OUT — fade away first, then hide
+      card.classList.remove('visible');
+      setTimeout(()=>{
+        if(!card.classList.contains('visible')){
+          card.style.display='none';
+        }
+      }, 350);
+      const cb=card.querySelector('input');
+      if(cb&&cb.checked){
+        addonTotal-=parseInt(cb.dataset.price);
+        cb.checked=false;
+        card.classList.remove('active');
+      }
+    } else {
+      // ease IN — show first, then animate in with stagger
+      card.style.display='';
+      card.classList.remove('visible');
+      setTimeout(()=>{
+        card.classList.add('visible');
+      }, 20 + delay);
+      delay += 55; // stagger each card by 55ms
+      anyVisible=true;
+    }
+  });
+
+  document.getElementById('addonNotice').textContent=anyVisible?'':'(none for this plan)';
+  
+  // 3. Handle Layout Gap for empty addons
+  const paRow = document.querySelector('.pa-row');
+  if(!anyVisible) {
+    paRow.classList.add('no-addons');
+  } else {
+    paRow.classList.remove('no-addons');
+  }
+
+  updateSummary();
+}
+
+/* ══ ADDON ══ */
+function toggleAddon(cb){
+  const card=cb.closest('.addon-card');
+  const price=parseInt(cb.dataset.price);
+  if(cb.checked){card.classList.add('active');addonTotal+=price;}
+  else{card.classList.remove('active');addonTotal-=price;}
+  updateSummary();
+}
+
+/* ══ PEOPLE ══ */
+function changePeople(delta){
+  const inp=document.getElementById('people');
+  inp.value=Math.max(50,(parseInt(inp.value)||50)+delta);
+  validatePeople();updateSummary();
+}
+function validatePeople(){
+  const v=parseInt(document.getElementById('people').value)||0;
+  document.getElementById('peopleError').style.display=v<50?'block':'none';
+}
+
+/* ══ TIME ══ */
+function syncTime(){
+  let h=parseInt(document.getElementById('hour').value);
+  const ap=document.getElementById('ampm').value;
+  if(ap==='PM'&&h<12) h+=12;
+  if(ap==='AM'&&h===12) h=0;
+  document.getElementById('finalTime').value=String(h).padStart(2,'0')+':00:00';
+}
+syncTime();
+
+/* ══ SUMMARY ══ */
+function updateSummary(){
+  if(!selectedPlanEl) return;
+  const base=parseInt(selectedPlanEl.dataset.price)||0;
+  const food=parseInt(selectedPlanEl.dataset.food)||0;
+  const guests=parseInt(document.getElementById('people').value)||0;
+  const total=base+food*guests+addonTotal;
+  const advance=Math.round(total*0.25);
+  document.getElementById('s-plan').textContent=selectedPlanEl.dataset.name||'—';
+  document.getElementById('s-base').textContent='₹'+base.toLocaleString();
+  document.getElementById('s-guests').textContent=guests+' guests';
+  document.getElementById('s-food').textContent='₹'+(food*guests).toLocaleString();
+  document.getElementById('s-addons').textContent='₹'+addonTotal.toLocaleString();
+  document.getElementById('s-total').textContent='₹'+total.toLocaleString();
+  document.getElementById('s-advance').textContent=advance.toLocaleString();
+  const tags=document.getElementById('addon-tags');
+  const checked=[...document.querySelectorAll('#addonGrid input:checked')];
+  tags.innerHTML=checked.map(cb=>`<span class="addon-tag">${cb.closest('.addon-card').querySelector('.addon-name').textContent}</span>`).join('');
+}
+
+/* ══ CONFIRM ══ */
+function buildConfirm(){
+  const base=parseInt(selectedPlanEl?.dataset.price||0);
+  const food=parseInt(selectedPlanEl?.dataset.food||0);
+  const guests=parseInt(document.getElementById('people').value)||0;
+  const total=base+food*guests+addonTotal;
+  const advance=Math.round(total*0.25);
+  const addonsSelected=[...document.querySelectorAll('#addonGrid input:checked')]
+    .map(cb=>cb.closest('.addon-card').querySelector('.addon-name').textContent).join(', ')||'None';
+  const rows=[
+    ['Plan',selectedPlanEl?.dataset.name||'—'],
+    ['Event Name',document.getElementById('eventName').value],
+    ['Hotel / Venue',document.getElementById('hotelName').value],
+    ['Location',document.getElementById('location').value],
+    ['Guests',guests+' people'],
+    ['Date',document.getElementById('eventDate').value],
+    ['Time',document.getElementById('hour').value+':00 '+document.getElementById('ampm').value],
+    ['Add-ons',addonsSelected],
+    ['Total Amount','₹'+total.toLocaleString()],
+    ['Advance (25%)','₹'+advance.toLocaleString()],
+  ];
+  document.getElementById('confirmDetails').innerHTML=rows.map(([k,v])=>`
+    <div class="confirm-row"><span>${k}</span><span>${v}</span></div>
+  `).join('');
+}
+
+/* ══ FLATPICKR ══ */
+flatpickr('#eventDate',{
+  minDate:new Date().fp_incr(60),maxDate:new Date().fp_incr(150),
+  altInput:true,altFormat:'d M Y',dateFormat:'Y-m-d',disableMobile:true,
+  onChange:()=>updateSummary()
+});
+
+/* ══ SUBMIT ══ */
+function handleSubmit(e){
+  e.preventDefault();
+  const overlay=document.getElementById('successOverlay');
+  overlay.classList.add('show');
+  let count=3;
+  const cEl=document.getElementById('countdown');
+  const timer=setInterval(()=>{
+    count--;cEl.textContent=count;
+    if(count<=0){clearInterval(timer);document.getElementById('mainForm').submit();}
+  },1000);
+}
+/* ══ BUTTON RIPPLE ══ */
+document.querySelectorAll('.btn-next').forEach(btn=>{
+  btn.addEventListener('click', function(e){
+    const rect = this.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const size = Math.max(rect.width, rect.height);
+    ripple.classList.add('ripple');
+    ripple.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${e.clientX-rect.left-size/2}px;
+      top:${e.clientY-rect.top-size/2}px;
+    `;
+    this.appendChild(ripple);
+    setTimeout(()=>ripple.remove(), 500);
+  });
+});
+</script>
+</body>
+</html>
