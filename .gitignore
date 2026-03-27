@@ -1,14 +1,40 @@
-.env
-.env.*
-!.env.example
+# Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+env/
+.venv/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+local_settings.py
 *.sqlite3
 db.sqlite3
+db.sqlite3-journal
 test_db.sqlite3
-.idea/
-.venv/
-.pytest_cache/
 staticfiles/
 media/
-*.log
+
+# Secrets
+.env
+*.env
+!.env.example
+.env.*
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
