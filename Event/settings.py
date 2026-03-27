@@ -155,15 +155,18 @@ LOGIN_REDIRECT_URL = '/dashboard/'     # or home page after login
 LOGOUT_REDIRECT_URL = '/login/'
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend').strip()
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com').strip()
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
 EMAIL_HOST_USER = (os.getenv('EMAIL_HOST_USER') or '').strip()
 EMAIL_HOST_PASSWORD = (os.getenv('EMAIL_HOST_PASSWORD') or '').strip()
 DEFAULT_FROM_EMAIL = (os.getenv('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER).strip()
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
 OTP_EXPIRY_MINUTES = int(os.getenv('OTP_EXPIRY_MINUTES', '5'))
+OTP_EMAIL_PROVIDER = os.getenv('OTP_EMAIL_PROVIDER', 'resend').strip().lower()
+RESEND_API_KEY = (os.getenv('RESEND_API_KEY') or '').strip()
+RESEND_API_URL = (os.getenv('RESEND_API_URL') or 'https://api.resend.com/emails').strip()
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG

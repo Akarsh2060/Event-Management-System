@@ -67,11 +67,12 @@ class OtpFlowTests(TestCase):
         self.assertEqual(self.client.session["reset_identifier"], "9876543210")
 
     @override_settings(
-        EMAIL_HOST_USER="your-email@gmail.com",
-        EMAIL_HOST_PASSWORD="your-app-password",
-        DEFAULT_FROM_EMAIL="your-email@gmail.com",
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        OTP_EMAIL_PROVIDER="resend",
+        RESEND_API_KEY="your-resend-api-key",
+        DEFAULT_FROM_EMAIL="onboarding@resend.dev",
     )
-    def test_send_login_otp_returns_helpful_error_for_placeholder_gmail_config(self):
+    def test_send_login_otp_returns_helpful_error_for_placeholder_resend_config(self):
         response = self.client.post(
             "/api/send-otp/",
             data=json.dumps({"identifier": "person@example.com"}),
@@ -79,4 +80,4 @@ class OtpFlowTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 503)
-        self.assertIn("Gmail SMTP is not configured", response.json()["error"])
+        self.assertIn("Resend is not configured", response.json()["error"])

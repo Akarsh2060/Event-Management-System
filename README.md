@@ -38,10 +38,12 @@ Set these in Render, not in GitHub:
 - `DB_HOST`
 - `DB_PORT`
 - `DB_SSLMODE`
-- `EMAIL_HOST_USER`
-- `EMAIL_HOST_PASSWORD`
+- `OTP_EMAIL_PROVIDER=resend`
+- `RESEND_API_KEY`
 - `DEFAULT_FROM_EMAIL`
 - `SECURE_SSL_REDIRECT=True`
+
+For free Render deployments, use an email API such as Resend for OTP delivery instead of Gmail SMTP. Render free instances block outbound SMTP traffic.
 
 ## GitHub safety
 

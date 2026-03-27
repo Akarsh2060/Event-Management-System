@@ -1,6 +1,6 @@
 import requests
 import logging
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
@@ -10,6 +10,11 @@ GMAIL_PLACEHOLDERS = {
     "your-email@gmail.com",
     "your-app-password",
     "",
+}
+
+RESEND_PLACEHOLDERS = {
+    "",
+    "your-resend-api-key",
 }
 
 def send_otp_sms(phone, otp):
@@ -28,7 +33,71 @@ def send_otp_sms(phone, otp):
     response = requests.post(url, json=payload, headers=headers)
     return response.json()
 
+
+def _send_otp_via_django_email_backend(email, otp):
+    subject = "Your OTP Verification Code"
+    message = (
+        f"Your OTP is: {otp}. "
+        f"It is valid for {settings.OTP_EXPIRY_MINUTES} minutes."
+    )
+    email_from = settings.DEFAULT_FROM_EMAIL
+
+    send_mail(
+        subject,
+        message,
+        email_from,
+        [email],
+        fail_silently=False,
+    )
+
+
+def _send_otp_via_resend(email, otp):
+    api_key = settings.RESEND_API_KEY
+    if api_key in RESEND_PLACEHOLDERS:
+        raise ImproperlyConfigured(
+            "Resend is not configured. Set RESEND_API_KEY in your environment."
+        )
+
+    if not settings.DEFAULT_FROM_EMAIL:
+        raise ImproperlyConfigured(
+            "DEFAULT_FROM_EMAIL is not configured. Set it to your verified Resend sender."
+        )
+
+    response = requests.post(
+        settings.RESEND_API_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "Your OTP Verification Code",
+            "text": (
+                f"Your OTP is: {otp}. "
+                f"It is valid for {settings.OTP_EXPIRY_MINUTES} minutes."
+            ),
+        },
+        timeout=settings.EMAIL_TIMEOUT,
+    )
+
+    if response.status_code >= 400:
+        logger.error("Resend OTP send failed: %s", response.text)
+        raise RuntimeError(
+            "Unable to send OTP email through Resend. Check the API key and sender configuration."
+        )
+
+
 def send_otp_email(email, otp):
+    if settings.EMAIL_BACKEND == "django.core.mail.backends.locmem.EmailBackend":
+        _send_otp_via_django_email_backend(email, otp)
+        return
+
+    provider = settings.OTP_EMAIL_PROVIDER
+    if provider == "resend":
+        _send_otp_via_resend(email, otp)
+        return
+
     host_user = (settings.EMAIL_HOST_USER or "").strip()
     host_password = (settings.EMAIL_HOST_PASSWORD or "").strip()
 
@@ -46,13 +115,8 @@ def send_otp_email(email, otp):
     email_from = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
     try:
-        send_mail(
-            subject,
-            message,
-            email_from,
-            recipient_list,
-            fail_silently=False,
-        )
+        email_message = EmailMessage(subject, message, email_from, recipient_list)
+        email_message.send(fail_silently=False)
     except Exception as exc:
         logger.exception(
             "Gmail OTP send failed for %s using host=%s port=%s user=%s",
