@@ -202,19 +202,26 @@ function togglePwd(id){
 }
 
 function sendOtp(){
+  actionBtn.disabled = true;
+  actionBtn.innerText = "Sending...";
   clearErrors();
   fetch("/api/send-forget-otp/",{
     method:"POST",
     headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
     body:JSON.stringify({identifier:identifier.value.trim()})
   }).then(r=>{
+    actionBtn.disabled = false;
     if(!r.ok) throw 0;
     identifier.style.display="none";
     title.innerHTML=`OTP SENT TO ${identifier.value} <span class="change" onclick="location.reload()">Change?</span>`;
     otpBox.classList.remove("hidden");
     actionBtn.innerText="Verify OTP";
     actionBtn.onclick=verifyOtp;
-  }).catch(()=>userError.style.display="block");
+  }).catch(()=>{
+    actionBtn.disabled = false;
+    actionBtn.innerText = "Send OTP";
+    userError.style.display="block";
+  });
 }
 
 function verifyOtp(){

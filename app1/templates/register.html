@@ -297,6 +297,10 @@ function validatePasswords() {
 }
 
 function sendOtp(){
+  if(!validatePasswords()) return;
+  
+  actionBtn.disabled = true;
+  actionBtn.innerText = "Sending...";
   clearErrors();
   fetch("/api/register-send-otp/",{
     method:"POST",
@@ -314,7 +318,9 @@ function sendOtp(){
   })
   .then(r=>r.json())
   .then(r=>{
+    actionBtn.disabled = false;
     if(r.errors){
+      actionBtn.innerText = "Send OTP";
       if(r.errors.email){emailErr.innerText=r.errors.email;emailErr.style.display="block";}
       if(r.errors.phone){phoneErr.innerText=r.errors.phone;phoneErr.style.display="block";}
       return;

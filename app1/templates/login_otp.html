@@ -204,6 +204,9 @@ function sendOtp(){
   const id = identifier.value.trim();
   if(!id) return;
 
+  actionBtn.disabled = true;
+  actionBtn.innerText = "Sending...";
+
   fetch("/api/send-otp/",{
     method:"POST",
     credentials: "same-origin",
@@ -214,8 +217,10 @@ function sendOtp(){
     body:JSON.stringify({identifier:id})
   })
   .then(res=>{
+    actionBtn.disabled = false;
     if(res.status === 404){
-  userError.style.display="block";
+      actionBtn.innerText = "Send OTP";
+      userError.style.display="block";
   return;
 }
     else{
