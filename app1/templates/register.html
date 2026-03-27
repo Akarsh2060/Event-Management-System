@@ -253,6 +253,12 @@ button{
 
 <script>
 const csrfToken = "{{ csrf_token }}";
+const uname=document.getElementById("uname");
+const email=document.getElementById("email");
+const phone=document.getElementById("phone");
+const password=document.getElementById("password");
+const confirm_password=document.getElementById("confirm_password");
+
 const inputs=[uname,email,phone,password,confirm_password];
 const otpInputs=document.querySelectorAll(".otp-input");
 const resendBtn=document.getElementById("resendOtp");

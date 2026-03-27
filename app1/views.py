@@ -410,6 +410,8 @@ def register_send_otp(request):
         "data": data
     }
 
+    print(f"[DEBUG] Registration OTP generated: {otp} for {email}")
+
     try:
         from django.core.mail import send_mail
         from django.conf import settings
@@ -418,10 +420,11 @@ def register_send_otp(request):
             f"Your OTP for registration is {otp}. This code expires in 5 minutes.",
             settings.EMAIL_HOST_USER,
             [email],
-            fail_silently=False,
+            fail_silently=True,
         )
+        print("[DEBUG] send_mail call finished (fail_silently=True)")
     except Exception as e:
-        print("Email sending failed:", e)
+        print("[ERROR] Email sending failed (should not happen with fail_silently=True):", e)
 
     return JsonResponse({"success":True})
 

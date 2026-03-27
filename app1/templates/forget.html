@@ -161,6 +161,16 @@ button{
 <script>
 const csrf = () => document.getElementById("csrf-token").value;
 const otpInputs = document.querySelectorAll(".otp-input");
+const identifier = document.getElementById("identifier");
+const userError = document.getElementById("userError");
+const otpError = document.getElementById("otpError");
+const title = document.getElementById("title");
+const actionBtn = document.getElementById("actionBtn");
+const otpBox = document.getElementById("otpBox");
+const resetBox = document.getElementById("resetBox");
+const newPassword = document.getElementById("newPassword");
+const confirmPassword = document.getElementById("confirmPassword");
+const passError = document.getElementById("passError");
 
 otpInputs.forEach((input,idx)=>{
   input.addEventListener("input", e=>{
