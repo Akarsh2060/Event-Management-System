@@ -68,12 +68,11 @@ class OtpFlowTests(TestCase):
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
-        OTP_EMAIL_PROVIDER="mailgun",
-        MAILGUN_API_KEY="your-mailgun-api-key",
-        MAILGUN_DOMAIN="your-mailgun-sandbox-domain",
-        DEFAULT_FROM_EMAIL="postmaster@your-mailgun-sandbox-domain",
+        OTP_EMAIL_PROVIDER="resend",
+        RESEND_API_KEY="your-resend-api-key",
+        DEFAULT_FROM_EMAIL="onboarding@resend.dev",
     )
-    def test_send_login_otp_returns_helpful_error_for_placeholder_mailgun_config(self):
+    def test_send_login_otp_returns_helpful_error_for_placeholder_resend_config(self):
         response = self.client.post(
             "/api/send-otp/",
             data=json.dumps({"identifier": "person@example.com"}),
@@ -81,4 +80,4 @@ class OtpFlowTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 503)
-        self.assertIn("Mailgun is not configured", response.json()["error"])
+        self.assertIn("Resend is not configured", response.json()["error"])
