@@ -164,9 +164,14 @@ EMAIL_HOST_PASSWORD = (os.getenv('EMAIL_HOST_PASSWORD') or '').strip()
 DEFAULT_FROM_EMAIL = (os.getenv('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER).strip()
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
 OTP_EXPIRY_MINUTES = int(os.getenv('OTP_EXPIRY_MINUTES', '5'))
-OTP_EMAIL_PROVIDER = os.getenv('OTP_EMAIL_PROVIDER', 'resend').strip().lower()
+OTP_EMAIL_PROVIDER = os.getenv('OTP_EMAIL_PROVIDER', 'mailgun').strip().lower()
 RESEND_API_KEY = (os.getenv('RESEND_API_KEY') or '').strip()
 RESEND_API_URL = (os.getenv('RESEND_API_URL') or 'https://api.resend.com/emails').strip()
+MAILGUN_API_KEY = (os.getenv('MAILGUN_API_KEY') or '').strip()
+MAILGUN_DOMAIN = (os.getenv('MAILGUN_DOMAIN') or '').strip()
+MAILGUN_API_BASE_URL = (
+    os.getenv('MAILGUN_API_BASE_URL') or 'https://api.mailgun.net'
+).strip().rstrip('/')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG

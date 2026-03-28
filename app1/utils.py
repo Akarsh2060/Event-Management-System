@@ -17,6 +17,16 @@ RESEND_PLACEHOLDERS = {
     "your-resend-api-key",
 }
 
+MAILGUN_PLACEHOLDERS = {
+    "",
+    "your-mailgun-api-key",
+}
+
+MAILGUN_DOMAIN_PLACEHOLDERS = {
+    "",
+    "your-mailgun-sandbox-domain",
+}
+
 def send_otp_sms(phone, otp):
     url = "https://www.fast2sms.com/dev/bulkV2"
     headers = {
@@ -88,12 +98,56 @@ def _send_otp_via_resend(email, otp):
         )
 
 
+def _send_otp_via_mailgun(email, otp):
+    api_key = settings.MAILGUN_API_KEY
+    domain = settings.MAILGUN_DOMAIN
+
+    if api_key in MAILGUN_PLACEHOLDERS:
+        raise ImproperlyConfigured(
+            "Mailgun is not configured. Set MAILGUN_API_KEY in your environment."
+        )
+
+    if domain in MAILGUN_DOMAIN_PLACEHOLDERS:
+        raise ImproperlyConfigured(
+            "Mailgun is not configured. Set MAILGUN_DOMAIN in your environment."
+        )
+
+    if not settings.DEFAULT_FROM_EMAIL:
+        raise ImproperlyConfigured(
+            "DEFAULT_FROM_EMAIL is not configured. Set it to your Mailgun sender address."
+        )
+
+    response = requests.post(
+        f"{settings.MAILGUN_API_BASE_URL}/v3/{domain}/messages",
+        auth=("api", api_key),
+        data={
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "Your OTP Verification Code",
+            "text": (
+                f"Your OTP is: {otp}. "
+                f"It is valid for {settings.OTP_EXPIRY_MINUTES} minutes."
+            ),
+        },
+        timeout=settings.EMAIL_TIMEOUT,
+    )
+
+    if response.status_code >= 400:
+        logger.error("Mailgun OTP send failed: %s", response.text)
+        raise RuntimeError(
+            "Unable to send OTP email through Mailgun. Check the API key, sandbox domain, and authorized recipients."
+        )
+
+
 def send_otp_email(email, otp):
     if settings.EMAIL_BACKEND == "django.core.mail.backends.locmem.EmailBackend":
         _send_otp_via_django_email_backend(email, otp)
         return
 
     provider = settings.OTP_EMAIL_PROVIDER
+    if provider == "mailgun":
+        _send_otp_via_mailgun(email, otp)
+        return
     if provider == "resend":
         _send_otp_via_resend(email, otp)
         return

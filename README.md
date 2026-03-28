@@ -38,12 +38,14 @@ Set these in Render, not in GitHub:
 - `DB_HOST`
 - `DB_PORT`
 - `DB_SSLMODE`
-- `OTP_EMAIL_PROVIDER=resend`
-- `RESEND_API_KEY`
+- `OTP_EMAIL_PROVIDER=mailgun`
+- `MAILGUN_API_KEY`
+- `MAILGUN_DOMAIN`
+- `MAILGUN_API_BASE_URL`
 - `DEFAULT_FROM_EMAIL`
 - `SECURE_SSL_REDIRECT=True`
 
-For free Render deployments, use an email API such as Resend for OTP delivery instead of Gmail SMTP. Render free instances block outbound SMTP traffic.
+For free Render deployments, use an email API instead of Gmail SMTP. Render free instances block outbound SMTP traffic. Mailgun sandbox is a good fit for OTP testing because it can send to a small list of authorized recipients without requiring your own domain.
 
 ## GitHub safety
 
