@@ -12,6 +12,14 @@ GMAIL_PLACEHOLDERS = {
     "",
 }
 
+
+def _mask_secret(value):
+    if not value:
+        return "<empty>"
+    if len(value) <= 4:
+        return "*" * len(value)
+    return f"{value[:2]}{'*' * (len(value) - 4)}{value[-2:]}"
+
 def send_otp_sms(phone, otp):
     url = "https://www.fast2sms.com/dev/bulkV2"
     headers = {
@@ -72,11 +80,17 @@ def send_otp_email(email, otp):
         email_message.send(fail_silently=False)
     except Exception as exc:
         logger.exception(
-            "Gmail OTP send failed for %s using host=%s port=%s user=%s",
+            (
+                "Gmail OTP send failed for %s using host=%s port=%s tls=%s "
+                "user=%s from=%s password=%s"
+            ),
             email,
             settings.EMAIL_HOST,
             settings.EMAIL_PORT,
+            settings.EMAIL_USE_TLS,
             host_user,
+            settings.DEFAULT_FROM_EMAIL,
+            _mask_secret(host_password),
         )
         raise RuntimeError(
             "Unable to send OTP email through Gmail. Check the Gmail address, "

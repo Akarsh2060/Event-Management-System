@@ -155,15 +155,49 @@ LOGIN_REDIRECT_URL = '/dashboard/'     # or home page after login
 LOGOUT_REDIRECT_URL = '/login/'
 
 # Email Configuration
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend').strip()
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com').strip()
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
-EMAIL_HOST_USER = (os.getenv('EMAIL_HOST_USER') or '').strip()
-EMAIL_HOST_PASSWORD = (os.getenv('EMAIL_HOST_PASSWORD') or '').strip()
-DEFAULT_FROM_EMAIL = (os.getenv('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER).strip()
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
-OTP_EXPIRY_MINUTES = int(os.getenv('OTP_EXPIRY_MINUTES', '5'))
+def _mask_setting(value):
+    value = (value or "").strip()
+    if not value:
+        return "<empty>"
+    if len(value) <= 4:
+        return "*" * len(value)
+    return f"{value[:2]}{'*' * (len(value) - 4)}{value[-2:]}"
+
+
+EMAIL_BACKEND_ENV = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend').strip()
+EMAIL_HOST_ENV = os.getenv('EMAIL_HOST', 'smtp.gmail.com').strip()
+EMAIL_PORT_ENV = os.getenv('EMAIL_PORT', '587').strip()
+EMAIL_USE_TLS_ENV = os.getenv('EMAIL_USE_TLS', 'True').strip()
+EMAIL_HOST_USER_ENV = (os.getenv('EMAIL_HOST_USER') or '').strip()
+EMAIL_HOST_PASSWORD_ENV = (os.getenv('EMAIL_HOST_PASSWORD') or '').strip()
+DEFAULT_FROM_EMAIL_ENV = (os.getenv('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER_ENV).strip()
+EMAIL_TIMEOUT_ENV = os.getenv('EMAIL_TIMEOUT', '15').strip()
+OTP_EXPIRY_MINUTES_ENV = os.getenv('OTP_EXPIRY_MINUTES', '5').strip()
+
+EMAIL_BACKEND = EMAIL_BACKEND_ENV
+EMAIL_HOST = EMAIL_HOST_ENV
+EMAIL_PORT = int(EMAIL_PORT_ENV)
+EMAIL_USE_TLS = EMAIL_USE_TLS_ENV.lower() in {'1', 'true', 'yes', 'on'}
+EMAIL_HOST_USER = EMAIL_HOST_USER_ENV
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD_ENV
+DEFAULT_FROM_EMAIL = DEFAULT_FROM_EMAIL_ENV
+EMAIL_TIMEOUT = int(EMAIL_TIMEOUT_ENV)
+OTP_EXPIRY_MINUTES = int(OTP_EXPIRY_MINUTES_ENV)
+
+print(
+    "EMAIL CONFIG:",
+    {
+        "EMAIL_BACKEND": EMAIL_BACKEND,
+        "EMAIL_HOST": EMAIL_HOST,
+        "EMAIL_PORT": EMAIL_PORT,
+        "EMAIL_USE_TLS": EMAIL_USE_TLS,
+        "EMAIL_HOST_USER": EMAIL_HOST_USER,
+        "EMAIL_HOST_PASSWORD": _mask_setting(EMAIL_HOST_PASSWORD),
+        "DEFAULT_FROM_EMAIL": DEFAULT_FROM_EMAIL,
+        "EMAIL_TIMEOUT": EMAIL_TIMEOUT,
+        "OTP_EXPIRY_MINUTES": OTP_EXPIRY_MINUTES,
+    }
+)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG
