@@ -81,3 +81,19 @@ class OtpFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 503)
         self.assertIn("Resend is not configured", response.json()["error"])
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        OTP_EMAIL_PROVIDER="resend",
+        RESEND_API_KEY="re_test_key",
+        DEFAULT_FROM_EMAIL="onboarding@resend.dev",
+    )
+    def test_send_login_otp_returns_helpful_error_for_resend_test_sender(self):
+        response = self.client.post(
+            "/api/send-otp/",
+            data=json.dumps({"identifier": "person@example.com"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("verified sender", response.json()["error"])
