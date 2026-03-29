@@ -38,12 +38,16 @@ Set these in Render, not in GitHub:
 - `DB_HOST`
 - `DB_PORT`
 - `DB_SSLMODE`
-- `OTP_EMAIL_PROVIDER=resend`
-- `RESEND_API_KEY`
+- `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`
+- `EMAIL_HOST=smtp.gmail.com`
+- `EMAIL_PORT=587`
+- `EMAIL_USE_TLS=True`
+- `EMAIL_HOST_USER`
+- `EMAIL_HOST_PASSWORD`
 - `DEFAULT_FROM_EMAIL`
 - `SECURE_SSL_REDIRECT=True`
 
-For free Render deployments, use an email API such as Resend for OTP delivery instead of Gmail SMTP. Render free instances block outbound SMTP traffic.
+OTP delivery now uses SMTP only. If you deploy on a platform that restricts outbound SMTP, you will need a host that allows SMTP connections or an app-specific mail relay.
 
 ## GitHub safety
 

@@ -12,13 +12,6 @@ GMAIL_PLACEHOLDERS = {
     "",
 }
 
-RESEND_PLACEHOLDERS = {
-    "",
-    "your-resend-api-key",
-}
-
-RESEND_TEST_SENDER = "onboarding@resend.dev"
-
 def send_otp_sms(phone, otp):
     url = "https://www.fast2sms.com/dev/bulkV2"
     headers = {
@@ -53,63 +46,9 @@ def _send_otp_via_django_email_backend(email, otp):
     )
 
 
-def _send_otp_via_resend(email, otp):
-    api_key = settings.RESEND_API_KEY
-    if api_key in RESEND_PLACEHOLDERS:
-        raise ImproperlyConfigured(
-            "Resend is not configured. Set RESEND_API_KEY in your environment."
-        )
-
-    if not settings.DEFAULT_FROM_EMAIL:
-        raise ImproperlyConfigured(
-            "DEFAULT_FROM_EMAIL is not configured. Set it to your verified Resend sender."
-        )
-
-    if settings.DEFAULT_FROM_EMAIL.strip().lower() == RESEND_TEST_SENDER:
-        raise ImproperlyConfigured(
-            "Resend test sender cannot deliver production OTP emails. "
-            "Replace DEFAULT_FROM_EMAIL with a verified sender from your Resend domain."
-        )
-
-    response = requests.post(
-        settings.RESEND_API_URL,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": [email],
-            "subject": "Your OTP Verification Code",
-            "text": (
-                f"Your OTP is: {otp}. "
-                f"It is valid for {settings.OTP_EXPIRY_MINUTES} minutes."
-            ),
-        },
-        timeout=settings.EMAIL_TIMEOUT,
-    )
-
-    if response.status_code >= 400:
-        logger.error("Resend OTP send failed: %s", response.text)
-        response_body = response.text.lower()
-        if "onboarding@resend.dev" in response_body or "verify a domain" in response_body:
-            raise RuntimeError(
-                "Resend rejected the sender address. Use a verified sender/domain "
-                "for DEFAULT_FROM_EMAIL instead of onboarding@resend.dev."
-            )
-        raise RuntimeError(
-            "Unable to send OTP email through Resend. Check the API key and sender configuration."
-        )
-
-
 def send_otp_email(email, otp):
     if settings.EMAIL_BACKEND == "django.core.mail.backends.locmem.EmailBackend":
         _send_otp_via_django_email_backend(email, otp)
-        return
-
-    provider = settings.OTP_EMAIL_PROVIDER
-    if provider == "resend":
-        _send_otp_via_resend(email, otp)
         return
 
     host_user = (settings.EMAIL_HOST_USER or "").strip()
